@@ -12,12 +12,12 @@ namespace BlackMarket_API.Data.Models
         [Key]
         [Column(Order = 0)]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public int UserId { get; set; }
+        public long UserId { get; set; }
 
         [Key]
         [Column(Order = 1)]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public int ProductId { get; set; }
+        public long ProductId { get; set; }
 
         public int Amount { get; set; }
 

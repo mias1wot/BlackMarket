@@ -7,13 +7,13 @@ namespace BlackMarket_API.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.2.0-61023")]
-    public sealed partial class initial_DB : IMigrationMetadata
+    public sealed partial class initialDB : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(initial_DB));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(initialDB));
         
         string IMigrationMetadata.Id
         {
-            get { return "202206091129223_initial_DB"; }
+            get { return "202206130941292_initialDB"; }
         }
         
         string IMigrationMetadata.Source

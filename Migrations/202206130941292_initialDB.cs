@@ -3,7 +3,7 @@ namespace BlackMarket_API.Migrations
     using System;
     using System.Data.Entity.Migrations;
     
-    public partial class initial_DB : DbMigration
+    public partial class initialDB : DbMigration
     {
         public override void Up()
         {
@@ -11,22 +11,21 @@ namespace BlackMarket_API.Migrations
                 "dbo.Cart",
                 c => new
                     {
-                        UserId = c.Int(nullable: false),
-                        ProductId = c.Int(nullable: false),
+                        UserId = c.Long(nullable: false),
+                        ProductId = c.Long(nullable: false),
                         Amount = c.Int(nullable: false),
-                        User_Id = c.String(nullable: false, maxLength: 128),
                     })
                 .PrimaryKey(t => new { t.UserId, t.ProductId })
                 .ForeignKey("dbo.Product", t => t.ProductId)
-                .ForeignKey("dbo.AspNetUsers", t => t.User_Id)
-                .Index(t => t.ProductId)
-                .Index(t => t.User_Id);
+                .ForeignKey("dbo.AspNetUsers", t => t.UserId)
+                .Index(t => t.UserId)
+                .Index(t => t.ProductId);
             
             CreateTable(
                 "dbo.Product",
                 c => new
                     {
-                        ProductId = c.Int(nullable: false),
+                        ProductId = c.Long(nullable: false, identity: true),
                         Name = c.String(nullable: false, maxLength: 60),
                         Price = c.Decimal(nullable: false, storeType: "money"),
                         PhotoPath = c.String(maxLength: 150),
@@ -42,7 +41,7 @@ namespace BlackMarket_API.Migrations
                 "dbo.Category",
                 c => new
                     {
-                        CategoryId = c.Int(nullable: false),
+                        CategoryId = c.Int(nullable: false, identity: true),
                         Name = c.String(nullable: false, maxLength: 60),
                         Description = c.String(nullable: false, maxLength: 250),
                     })
@@ -52,7 +51,7 @@ namespace BlackMarket_API.Migrations
                 "dbo.AspNetUsers",
                 c => new
                     {
-                        Id = c.String(nullable: false, maxLength: 128),
+                        Id = c.Long(nullable: false, identity: true),
                         Name = c.String(nullable: false, maxLength: 60),
                         Surname = c.String(nullable: false, maxLength: 100),
                         Email = c.String(maxLength: 256),
@@ -75,7 +74,7 @@ namespace BlackMarket_API.Migrations
                 c => new
                     {
                         Id = c.Int(nullable: false, identity: true),
-                        UserId = c.String(nullable: false, maxLength: 128),
+                        UserId = c.Long(nullable: false),
                         ClaimType = c.String(),
                         ClaimValue = c.String(),
                     })
@@ -89,7 +88,7 @@ namespace BlackMarket_API.Migrations
                     {
                         LoginProvider = c.String(nullable: false, maxLength: 128),
                         ProviderKey = c.String(nullable: false, maxLength: 128),
-                        UserId = c.String(nullable: false, maxLength: 128),
+                        UserId = c.Long(nullable: false),
                     })
                 .PrimaryKey(t => new { t.LoginProvider, t.ProviderKey, t.UserId })
                 .ForeignKey("dbo.AspNetUsers", t => t.UserId, cascadeDelete: true)
@@ -99,8 +98,8 @@ namespace BlackMarket_API.Migrations
                 "dbo.AspNetUserRoles",
                 c => new
                     {
-                        UserId = c.String(nullable: false, maxLength: 128),
-                        RoleId = c.String(nullable: false, maxLength: 128),
+                        UserId = c.Long(nullable: false),
+                        RoleId = c.Long(nullable: false),
                     })
                 .PrimaryKey(t => new { t.UserId, t.RoleId })
                 .ForeignKey("dbo.AspNetUsers", t => t.UserId, cascadeDelete: true)
@@ -112,7 +111,7 @@ namespace BlackMarket_API.Migrations
                 "dbo.AspNetRoles",
                 c => new
                     {
-                        Id = c.String(nullable: false, maxLength: 128),
+                        Id = c.Long(nullable: false, identity: true),
                         Name = c.String(nullable: false, maxLength: 256),
                     })
                 .PrimaryKey(t => t.Id)
@@ -126,7 +125,7 @@ namespace BlackMarket_API.Migrations
             DropForeignKey("dbo.AspNetUserRoles", "UserId", "dbo.AspNetUsers");
             DropForeignKey("dbo.AspNetUserLogins", "UserId", "dbo.AspNetUsers");
             DropForeignKey("dbo.AspNetUserClaims", "UserId", "dbo.AspNetUsers");
-            DropForeignKey("dbo.Cart", "User_Id", "dbo.AspNetUsers");
+            DropForeignKey("dbo.Cart", "UserId", "dbo.AspNetUsers");
             DropForeignKey("dbo.Product", "CategoryId", "dbo.Category");
             DropForeignKey("dbo.Cart", "ProductId", "dbo.Product");
             DropIndex("dbo.AspNetRoles", "RoleNameIndex");
@@ -136,8 +135,8 @@ namespace BlackMarket_API.Migrations
             DropIndex("dbo.AspNetUserClaims", new[] { "UserId" });
             DropIndex("dbo.AspNetUsers", "UserNameIndex");
             DropIndex("dbo.Product", new[] { "CategoryId" });
-            DropIndex("dbo.Cart", new[] { "User_Id" });
             DropIndex("dbo.Cart", new[] { "ProductId" });
+            DropIndex("dbo.Cart", new[] { "UserId" });
             DropTable("dbo.AspNetRoles");
             DropTable("dbo.AspNetUserRoles");
             DropTable("dbo.AspNetUserLogins");

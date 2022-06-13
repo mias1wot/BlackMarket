@@ -12,14 +12,17 @@ using System.Linq;
 //drop table AspNetRoles
 
 
+//Update-Database -TargetMigration:"name"
+// if you want to come back to specific migration
 
 namespace BlackMarket_API.Data.Models
 {
-	public partial class BlackMarket : IdentityDbContext<User>
+	public partial class BlackMarket : IdentityDbContext<User, CustomRole, long, CustomUserLogin, CustomUserRole, CustomUserClaim>
 	{
 		public BlackMarket()
 			: base("name=BlackMarket")
 		{
+			Configuration.ProxyCreationEnabled = false;
 		}
 
 		public static BlackMarket Create()

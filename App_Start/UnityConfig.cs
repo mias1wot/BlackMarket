@@ -17,6 +17,8 @@ namespace BlackMarket_API
 
             // e.g. container.RegisterType<ITestService, TestService>();
             container.RegisterType<IProductRepository, ProductRepository>();
+            container.RegisterType<ICategoryRepository, CategoryRepository>();
+            container.RegisterType<ICartRepository, CartRepository>();
 
 
             GlobalConfiguration.Configuration.DependencyResolver = new UnityDependencyResolver(container);

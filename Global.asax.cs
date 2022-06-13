@@ -21,8 +21,12 @@ namespace BlackMarket_API
 
 			UnityConfig.RegisterComponents();
 
-			//UnityMvcActivator.Start();
-			//UnityWebActivator.Start();
+
+			//Add these Lines to Serializing Data to JSON Format
+			//doesn't work
+			//GlobalConfiguration.Configuration.Formatters.JsonFormatter.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+			//GlobalConfiguration.Configuration.Formatters.Remove(GlobalConfiguration.Configuration.Formatters.XmlFormatter);
+
 		}
 	}
 }

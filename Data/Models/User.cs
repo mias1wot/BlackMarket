@@ -11,19 +11,23 @@ namespace BlackMarket_API.Data.Models
 	using System.Threading.Tasks;
 
 	[Table("User")]
-    //public partial class User
-    public partial class User: IdentityUser
-    {
+	//public partial class User
+	//public partial class User: IdentityUser
+	//public partial class User: IdentityUser<int, IdentityUserLogin, IdentityUserRole, IdentityUserClaim>, IUser<int>
+	//public partial class User : IdentityUser<long, IdentityUserLogin<long>, IdentityUserRole<long>, IdentityUserClaim<long>>
+	public partial class User : IdentityUser<long, CustomUserLogin, CustomUserRole, CustomUserClaim>
+	{
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public User()
         {
             Cart = new HashSet<Cart>();
         }
 
-        public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<User> manager, string authenticationType)
+        public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<User, long> manager, string authenticationType)
         {
             // Note the authenticationType must match the one defined in CookieAuthenticationOptions.AuthenticationType
-            var userIdentity = await manager.CreateIdentityAsync(this, authenticationType);
+            //var userIdentity = await manager.CreateIdentityAsync(this, authenticationType);
+            var userIdentity = await manager.CreateIdentityAsync(this, DefaultAuthenticationTypes.ApplicationCookie);
             // Add custom user claims here
             return userIdentity;
         }

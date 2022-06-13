@@ -226,16 +226,23 @@
     <Compile Include="Areas\HelpPage\SampleGeneration\TextSample.cs" />
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
     <Compile Include="Controllers\AccountController.cs" />
+    <Compile Include="Controllers\CartController.cs" />
+    <Compile Include="Controllers\CategoriesController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ProductsController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
+    <Compile Include="Data\Interfaces\ICartRepository.cs" />
+    <Compile Include="Data\Interfaces\ICategoryRepository.cs" />
     <Compile Include="Data\Interfaces\IProductRepository.cs" />
     <Compile Include="Data\Models\BlackMarket.cs" />
     <Compile Include="Data\Models\Cart.cs" />
     <Compile Include="Data\Models\Category.cs" />
     <Compile Include="Data\Models\Product.cs" />
     <Compile Include="Data\Models\User.cs" />
+    <Compile Include="Data\Repositories\CartRepository.cs" />
+    <Compile Include="Data\Repositories\CategoryRepository.cs" />
     <Compile Include="Data\Repositories\ProductRepository.cs" />
+    <Compile Include="Data\ViewModels\CategoryViewModel.cs" />
     <Compile Include="Data\ViewModels\ProductViewModels.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -243,9 +250,9 @@
     <Compile Include="Data\BindingModels\AccountBindingModels.cs" />
     <Compile Include="Data\ViewModels\AccountViewModels.cs" />
     <Compile Include="Data\Models\IdentityModels.cs" />
-    <Compile Include="Migrations\202206091129223_initial_DB.cs" />
-    <Compile Include="Migrations\202206091129223_initial_DB.Designer.cs">
-      <DependentUpon>202206091129223_initial_DB.cs</DependentUpon>
+    <Compile Include="Migrations\202206130941292_initialDB.cs" />
+    <Compile Include="Migrations\202206130941292_initialDB.Designer.cs">
+      <DependentUpon>202206130941292_initialDB.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -342,8 +349,8 @@
     <Content Include="Scripts\jquery-3.4.1.min.map" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Migrations\202206091129223_initial_DB.resx">
-      <DependentUpon>202206091129223_initial_DB.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\202206130941292_initialDB.resx">
+      <DependentUpon>202206130941292_initialDB.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

@@ -1,11 +1,13 @@
 namespace BlackMarket_API.Data.Models
 {
-    using System;
+	using Newtonsoft.Json;
+	using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
+    [JsonObject(IsReference = false)]
     [Table("Product")]
     public partial class Product
     {
@@ -15,8 +17,8 @@ namespace BlackMarket_API.Data.Models
             Cart = new HashSet<Cart>();
         }
 
-        [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public int ProductId { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public long ProductId { get; set; }
 
         [Required]
         [StringLength(60)]
@@ -30,7 +32,7 @@ namespace BlackMarket_API.Data.Models
 
         public int CategoryId { get; set; }
 
-        [Required]
+        [Required(AllowEmptyStrings = true)]
         [StringLength(250)]
         public string Description { get; set; }
 

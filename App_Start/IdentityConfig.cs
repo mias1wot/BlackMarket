@@ -9,18 +9,18 @@ namespace BlackMarket_API
 {
 	// Configure the application user manager used in this application. UserManager is defined in ASP.NET Identity and is used by the application.
 
-	public class UserManager : UserManager<User>
+	public class UserManager : UserManager<User, long>
     {
-        public UserManager(IUserStore<User> store)
+        public UserManager(IUserStore<User, long> store)
             : base(store)
         {
         }
 
         public static UserManager Create(IdentityFactoryOptions<UserManager> options, IOwinContext context)
         {
-            var manager = new UserManager(new UserStore<User>(context.Get<BlackMarket>()));
+            var manager = new UserManager(new CustomUserStore(context.Get<BlackMarket>()));
             // Configure validation logic for usernames
-            manager.UserValidator = new UserValidator<User>(manager)
+            manager.UserValidator = new UserValidator<User, long>(manager)
             {
                 AllowOnlyAlphanumericUserNames = false,
                 RequireUniqueEmail = true
@@ -37,7 +37,7 @@ namespace BlackMarket_API
             var dataProtectionProvider = options.DataProtectionProvider;
             if (dataProtectionProvider != null)
             {
-                manager.UserTokenProvider = new DataProtectorTokenProvider<User>(dataProtectionProvider.Create("ASP.NET Identity"));
+                manager.UserTokenProvider = new DataProtectorTokenProvider<User, long>(dataProtectionProvider.Create("ASP.NET Identity"));
             }
             return manager;
         }

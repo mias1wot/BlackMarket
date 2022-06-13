@@ -6,30 +6,30 @@ using Microsoft.AspNet.Identity.Owin;
 
 namespace BlackMarket_API.Data.Models
 {
-	 //You can add profile data for the user by adding more properties to your ApplicationUser class, please visit https://go.microsoft.com/fwlink/?LinkID=317594 to learn more.
-	//public class ApplicationUser : IdentityUser
-	////public class ApplicationUser : IdentityUser<int, IdentityUserLogin<int>, IdentityUserRole<int>, IdentityUserClaim<int>>
-	//{
-	//	public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<ApplicationUser> manager, string authenticationType)
-	//	//public async Task<ClaimsIdentity> GenerateUserIdentityAsync(UserManager<ApplicationUser, int> manager, string authenticationType)
-	//	{
-	//		// Note the authenticationType must match the one defined in CookieAuthenticationOptions.AuthenticationType
-	//		var userIdentity = await manager.CreateIdentityAsync(this, authenticationType);
-	//		// Add custom user claims here
-	//		return userIdentity;
-	//	}
-	//}
+	public class CustomUserRole : IdentityUserRole<long> { }
+	public class CustomUserClaim : IdentityUserClaim<long> { }
+	public class CustomUserLogin : IdentityUserLogin<long> { }
 
-	//public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
-	////public class ApplicationDbContext : IdentityDbContext<ApplicationUser, IdentityRole<int, IdentityUserRole<int>>, int, IdentityUserLogin<int>, IdentityUserRole<int>, IdentityUserClaim<int>>
-	//{
-	//	public ApplicationDbContext(): base("DefaultConnection")
-	//	{
-	//	}
+	public class CustomRole : IdentityRole<long, CustomUserRole>
+	{
+		public CustomRole() { }
+		public CustomRole(string name) { Name = name; }
+	}
 
-	//	public static ApplicationDbContext Create()
-	//	{
-	//		return new ApplicationDbContext();
-	//	}
-	//}
+	public class CustomUserStore : UserStore<User, CustomRole, long,
+		CustomUserLogin, CustomUserRole, CustomUserClaim>
+	{
+		public CustomUserStore(BlackMarket context)
+			: base(context)
+		{
+		}
+	}
+
+	public class CustomRoleStore : RoleStore<CustomRole, long, CustomUserRole>
+	{
+		public CustomRoleStore(BlackMarket context)
+			: base(context)
+		{
+		}
+	}
 }
