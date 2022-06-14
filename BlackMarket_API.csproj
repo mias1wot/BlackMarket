@@ -254,6 +254,10 @@
     <Compile Include="Migrations\202206130941292_initialDB.Designer.cs">
       <DependentUpon>202206130941292_initialDB.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202206141818253_AddColumnToProduct-PhotoPath.cs" />
+    <Compile Include="Migrations\202206141818253_AddColumnToProduct-PhotoPath.Designer.cs">
+      <DependentUpon>202206141818253_AddColumnToProduct-PhotoPath.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\ApplicationOAuthProvider.cs" />
@@ -318,6 +322,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+    <Folder Include="wwwroot\Category\" />
+    <Folder Include="wwwroot\Product\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="fonts\glyphicons-halflings-regular.woff2" />
@@ -351,6 +357,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Migrations\202206130941292_initialDB.resx">
       <DependentUpon>202206130941292_initialDB.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202206141818253_AddColumnToProduct-PhotoPath.resx">
+      <DependentUpon>202206141818253_AddColumnToProduct-PhotoPath.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

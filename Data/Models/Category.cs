@@ -28,6 +28,9 @@ namespace BlackMarket_API.Data.Models
         [StringLength(250)]
         public string Description { get; set; }
 
+        [StringLength(150)]
+        public string PhotoPath { get; set; }
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Product> Product { get; set; }
     }

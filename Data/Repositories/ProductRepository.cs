@@ -3,9 +3,11 @@ using BlackMarket_API.Data.Models;
 using BlackMarket_API.Data.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace BlackMarket_API.Data.Repositories
 {
@@ -55,6 +57,13 @@ namespace BlackMarket_API.Data.Repositories
 							InCart = cartCollection.Select(cart => cart.UserId).Contains(userId)
 						})
 					.FirstOrDefault();
+
+
+				var physicalPathToPhoto = HttpContext.Current.Server.MapPath("~\\wwwroot\\" + res.Product.PhotoPath);
+
+				var photo = File.ReadAllText(physicalPathToPhoto);
+				//var photo2 = File.ReadAllLines(physicalPathToPhoto);
+				var photo3 = File.ReadAllBytes(physicalPathToPhoto);
 
 				return res;//can be null
 			}
