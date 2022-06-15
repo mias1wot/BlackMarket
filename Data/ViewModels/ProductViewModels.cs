@@ -14,6 +14,7 @@ namespace BlackMarket_API.Data.ViewModels
 	public class ProductViewModel
 	{
 		public Product Product { get; set; }
+		public byte[] Photo { get; set; }
 		public int SoldAmount { get; set; }
 		public bool InCart { get; set; }
 	}

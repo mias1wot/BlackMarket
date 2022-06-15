@@ -1,4 +1,7 @@
-﻿using BlackMarket_API.Data.Interfaces;
+﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using BlackMarket_API.Data.BindingModels;
+using BlackMarket_API.Data.Interfaces;
 using BlackMarket_API.Data.Models;
 using BlackMarket_API.Data.ViewModels;
 using Microsoft.AspNet.Identity;
@@ -7,6 +10,8 @@ using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -17,7 +22,7 @@ using System.Web.Http;
 
 namespace BlackMarket_API.Controllers
 {
-	[Authorize]
+	//[Authorize]
 	public class ProductsController : ApiController
 	{
 		private IProductRepository productRepository;
@@ -52,9 +57,9 @@ namespace BlackMarket_API.Controllers
 		}
 
 		//Returns null if there is no such a product
-		public ProductViewModel Get(long id)
+		public async Task<ProductViewModel> Get(long id)
 		{
-			return productRepository.GetProduct(User.Identity.GetUserId<long>(), id);
+			return await productRepository.GetProduct(User.Identity.GetUserId<long>(), id);
 		}
 
 		public ProductsViewModel Get(int categoryId, int page, int pageSize)
@@ -71,34 +76,56 @@ namespace BlackMarket_API.Controllers
 			return productRepository.GetProductsByName(User.Identity.GetUserId<long>(), name, categoryId, page, pageSize);
 		}
 
+		public IHttpActionResult ChangeProductPhoto()
+		{
+			//var form = HttpContext.Current.Request.Form;
+			//var paramss = HttpContext.Current.Request.Params;
+
+			var httpRequest = HttpContext.Current.Request;
+			if (httpRequest.Files.Count < 1)
+			{
+				return BadRequest("No image was given");
+			}
+
+			if (string.IsNullOrEmpty(httpRequest.Form["ProductId"]))
+			{
+				return BadRequest("ProductId was not given");
+			}
+
+			int productId = Int32.Parse(httpRequest.Form["ProductId"]);
+			HttpPostedFile photo = httpRequest.Files[0];
+
+			string photoName = photo.FileName;
+			Stream photoStream = photo.InputStream;
+
+			bool success = productRepository.ChangeProductPhoto(productId, Path.GetExtension(photoName), photoStream);
+			if (!success)
+				return BadRequest("Couldn't change the image (it may have been error while saving photo to Azure Storage)");
+
+			return Ok();
+		}
+
+
 
 
 		//test area: this is not implemented
+		public void Test()
+		{
+			productRepository.Test();
+		}
+
+		//Sends image to Client. This works.
 		public object GetImage()
 		{
 			var photoPath = "Product\\04b017b5fde4d2802cb5d405e4dd2860.png";
 			var physicalPathToPhoto = HttpContext.Current.Server.MapPath("~\\wwwroot\\" + photoPath);
 
-			var photo = System.IO.File.ReadAllText(physicalPathToPhoto);
-			//var photo2 = File.ReadAllLines(physicalPathToPhoto);
-			var photo2 = System.IO.File.ReadAllBytes(physicalPathToPhoto);
+			var photo = System.IO.File.ReadAllBytes(physicalPathToPhoto);
 
-			return new { 
-				Photo = photo,
-				BytePhoto = photo2
-			};//can be null
+			return new
+			{
+				BytePhoto = photo,
+			};
 		}
-
-		//public void Get(IFormFile)
-
-		//public object UploadAvatar()
-		//{
-		//	var file = HttpContext.Current.Request.Files.Count > 0 ? HttpContext.Current.Request.Files[0] : null;
-		//}
-
-		//React
-		//const URL = '/api/userapi/uploadavatar';
-		//var file = e.target.files[0];
-		//axios.post(URL, {data: file});
 	}
 }
