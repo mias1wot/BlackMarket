@@ -13,7 +13,14 @@ namespace BlackMarket_API.Data.ViewModels
 
 	public class ProductViewModel
 	{
-		public Product Product { get; set; }
+		public long ProductId { get; set; }
+		public string Name { get; set; }
+		public decimal Price { get; set; }
+		public int CategoryId { get; set; }
+		public string Description { get; set; }
+		public string ExtraDescription { get; set; }
+
+
 		public byte[] Photo { get; set; }
 		public int SoldAmount { get; set; }
 		public bool InCart { get; set; }

@@ -1,4 +1,5 @@
-﻿using Azure.Storage.Blobs;
+﻿using AutoMapper;
+using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using BlackMarket_API.Data.BindingModels;
 using BlackMarket_API.Data.Interfaces;
@@ -25,7 +26,8 @@ namespace BlackMarket_API.Controllers
 	//[Authorize]
 	public class ProductsController : ApiController
 	{
-		private IProductRepository productRepository;
+		private readonly IProductRepository productRepository;
+		private readonly IMapper mapper;
 
 		private UserManager _userManager;
 		public UserManager UserManager
@@ -41,9 +43,10 @@ namespace BlackMarket_API.Controllers
 		}
 
 
-		public ProductsController(IProductRepository productRepository)
+		public ProductsController(IMapper mapper, IProductRepository productRepository)
 		{
 			this.productRepository = productRepository;
+			this.mapper = mapper;
 		}
 
 
@@ -51,20 +54,23 @@ namespace BlackMarket_API.Controllers
 
 
 		//page begins from 1
+		//public ProductsViewModel Get(int page, int pageSize)
 		public ProductsViewModel Get(int page, int pageSize)
 		{
-			return productRepository.GetProducts(User.Identity.GetUserId<long>(), page, pageSize);
+			var products = productRepository.GetProducts(User.Identity.GetUserId<long>(), page, pageSize, mapper);
+			return products;
+			
 		}
 
 		//Returns null if there is no such a product
 		public ProductViewModel Get(long id)
 		{
-			return productRepository.GetProduct(User.Identity.GetUserId<long>(), id);
+			return productRepository.GetProduct(User.Identity.GetUserId<long>(), id, mapper);
 		}
 
 		public ProductsViewModel Get(int categoryId, int page, int pageSize)
 		{
-			return productRepository.GetByCategory(User.Identity.GetUserId<long>(), categoryId, page, pageSize);
+			return productRepository.GetByCategory(User.Identity.GetUserId<long>(), categoryId, page, pageSize, mapper);
 		}
 
 		public ProductsViewModel Get(string name, int page, int pageSize)
@@ -73,7 +79,7 @@ namespace BlackMarket_API.Controllers
 		}
 		public ProductsViewModel Get(string name, int categoryId, int page, int pageSize)
 		{
-			return productRepository.GetProductsByName(User.Identity.GetUserId<long>(), name, categoryId, page, pageSize);
+			return productRepository.GetProductsByName(User.Identity.GetUserId<long>(), name, categoryId, page, pageSize, mapper);
 		}
 
 		public IHttpActionResult ChangeProductPhoto()

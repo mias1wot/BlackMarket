@@ -1,3 +1,4 @@
+using BlackMarket_API.App_Start;
 using BlackMarket_API.Data.Interfaces;
 using BlackMarket_API.Data.Repositories;
 using System.Web.Http;
@@ -19,6 +20,8 @@ namespace BlackMarket_API
             container.RegisterType<IProductRepository, ProductRepository>();
             container.RegisterType<ICategoryRepository, CategoryRepository>();
             container.RegisterType<ICartRepository, CartRepository>();
+
+            container.RegisterInstance(MapperConfig.Register()) ;
 
 
             GlobalConfiguration.Configuration.DependencyResolver = new UnityDependencyResolver(container);

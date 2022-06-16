@@ -1,8 +1,10 @@
-﻿using Azure.Storage.Blobs;
+﻿using AutoMapper;
+using Azure.Storage.Blobs;
 using BlackMarket_API.Data.Interfaces;
 using BlackMarket_API.Data.Models;
 using BlackMarket_API.Data.ViewModels;
 using BlackMarket_API.ExtensionMethods;
+using DevTrends.DataHelpers;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -11,6 +13,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+
+//var physicalPathToPhoto = HttpContext.Current.Server.MapPath("~\\wwwroot\\" + res.Product.PhotoPath);
+//var photo = File.ReadAllBytes(physicalPathToPhoto);
+
 
 namespace BlackMarket_API.Data.Repositories
 {
@@ -29,130 +35,159 @@ namespace BlackMarket_API.Data.Repositories
 			ChangeProductPhotoInAzureStorage("1", photoStream);
 		}
 
-
-		public ProductsViewModel GetProducts(long userId, int page, int pageSize)
+		private List<(Product Product, int SoldAmount, bool InCart)> GenericGetProductsFromDb(long userId, long? productId, int? categoryId, string productName, int page, int pageSize, IMapper mapper)
 		{
-			using (BlackMarket context = new BlackMarket())
-			{
-				var res = context.Product
-					.GroupJoin(context.Cart,
-						product => product.ProductId,
-						cart => cart.ProductId,
-						(product, cartCollection) => new ProductViewModel() {
-							Product = product,
-							SoldAmount = cartCollection.Sum(cart => (int?)cart.Amount) ?? 0,
-							InCart = cartCollection.Select(cart => cart.UserId).Contains(userId)
-						})
-					.OrderBy(productVM => productVM.Product.Name)
-					.Skip((page - 1) * pageSize)
-					.Take(pageSize)
-					.ToList();
-
-				//Gets products photo
-				//res.ForEach(async productVM => productVM.Photo = await GetProductPhotoFromAzureStorage(productVM.Product.PhotoPath));
-				res.AsParallel().ForAll(productVM => productVM.Photo = GetProductPhotoFromAzureStorage(productVM.Product.PhotoPath));
+			//no aggregation, no sum, just plain map object to object.
+			//But this builds query that will return only needed fields for ViewModel from database
+			//While automapper processes data after they're received from DB
+			//You need to write complex tasks by your own
+			//File: EnhancedAutomapper/QueryableExtensions.cs
+			//var res = context.Product.Project().To<ProductViewModel>().ToList();
 
 
-				return new ProductsViewModel()
-				{
-					Products = res
-				};
-			}
-		}
-		
-		public ProductViewModel GetProduct(long userId, long id)
-		{
-			using (BlackMarket context = new BlackMarket())
-			{
-				var res = context.Product
-					.Where(product => product.ProductId == id)
-					.GroupJoin(context.Cart,
-						product => product.ProductId,
-						cart => cart.ProductId,
-						(product, cartCollection) => new ProductViewModel
-						{
-							Product = product,
-							SoldAmount = cartCollection.Sum(cart => (int?)cart.Amount) ?? 0,
-							InCart = cartCollection.Select(cart => cart.UserId).Contains(userId)
-						})
-					.FirstOrDefault();
 
-				//no product with this Id
-				if (res == null)
-					return null;
-
-
-				//var physicalPathToPhoto = HttpContext.Current.Server.MapPath("~\\wwwroot\\" + res.Product.PhotoPath);
-				//var photo = File.ReadAllBytes(physicalPathToPhoto);
-				
-				res.Photo = GetProductPhotoFromAzureStorage(res.Product.PhotoPath);
-
-				return res;
-			}
-		}
-
-		public ProductsViewModel GetByCategory(long userId, int categoryId, int page, int pageSize)
-		{
-			using (BlackMarket context = new BlackMarket())
-			{
-				var res = context.Product
-					.Where(product => product.CategoryId == categoryId)
-					.GroupJoin(context.Cart,
-						product => product.ProductId,
-						cart => cart.ProductId,
-						(product, cartCollection) => new ProductViewModel() {
-							Product = product,
-							SoldAmount = cartCollection.Sum(cart => (int?)cart.Amount) ?? 0,
-							InCart = cartCollection.Select(cart => cart.UserId).Contains(userId)
-						})
-					.OrderBy(productVM => productVM.Product.Name)
-					.Skip((page - 1) * pageSize)
-					.Take(pageSize)
-					.ToList();
-
-				//Gets products photo
-				res.AsParallel().ForAll(productVM => productVM.Photo = GetProductPhotoFromAzureStorage(productVM.Product.PhotoPath));
-
-				return new ProductsViewModel()
-				{
-					Products = res
-				};
-			}
-		}
-
-		public ProductsViewModel GetProductsByName(long userId, string name, int categoryId, int page, int pageSize)
-		{
 			using (BlackMarket context = new BlackMarket())
 			{
 				IQueryable<Product> products = context.Product;
 
-				if (categoryId != 0)
+				if (categoryId != null)
 					products = products.Where(product => product.CategoryId == categoryId);
 
+				if (productId != null)
+					products = products.Where(product => product.ProductId == productId);
 
-					var res = products
-					.Where(product => product.Name.Contains(name))
-					.GroupJoin(context.Cart,
-						product => product.ProductId,
-						cart => cart.ProductId,
-						(product, cartCollection) => new ProductViewModel() {
-							Product = product,
-							SoldAmount = cartCollection.Sum(cart => (int?)cart.Amount) ?? 0,
-							InCart = cartCollection.Select(cart => cart.UserId).Contains(userId)
-						})
-					.OrderBy(productVM => productVM.Product.Name)
-					.Skip((page - 1) * pageSize)
-					.Take(pageSize)
-					.ToList();
+				if (productName != null)
+					products = products.Where(product => product.Name.Contains(productName));
 
-				//Gets products photo
-				res.AsParallel().ForAll(productVM => productVM.Photo = GetProductPhotoFromAzureStorage(productVM.Product.PhotoPath));
 
-				return new ProductsViewModel()
-				{
-					Products = res
-				};
+				var res = products
+				.GroupJoin(context.Cart,
+					product => product.ProductId,
+					cart => cart.ProductId,
+					(product, cartCollection) => new
+					{
+						Product = product,
+						SoldAmount = cartCollection.Sum(cart => (int?)cart.Amount) ?? 0,
+						InCart = cartCollection.Select(cart => cart.UserId).Contains(userId)
+					})
+				.OrderBy(productVM => productVM.Product.Name)
+				.Skip((page - 1) * pageSize)
+				.Take(pageSize)
+				.ToList();
+
+
+				return res.Select(productAndOther =>
+					(
+						Product: productAndOther.Product,
+						SoldAmount: productAndOther.SoldAmount,
+						InCart: productAndOther.InCart
+					)).ToList();
 			}
+		}
+
+		private ProductsViewModel GenericGetProductsViewModel(List<(Product Product, int SoldAmount, bool InCart)> products, IMapper mapper)
+		{
+			//Gets only needed fields to ViewModel
+			var productsVM = new List<ProductViewModel>();
+
+			products.ForEach(productAndOther =>
+			{
+				var productVM = mapper.Map<ProductViewModel>(productAndOther.Product);
+				productVM.SoldAmount = productAndOther.SoldAmount;
+				productVM.InCart = productAndOther.InCart;
+
+				productsVM.Add(productVM);
+			});
+
+
+			//Gets products photo
+			var photos = GetProductsPhotoFromAzureStorage(products.Select(productAndOther => productAndOther.Product.PhotoPath).ToList());
+			var photoIterator = photos.GetEnumerator();
+
+			productsVM.ForEach(productVM =>
+			{
+				photoIterator.MoveNext();
+				productVM.Photo = photoIterator.Current;
+			});
+
+
+			//Gets products photo - previously used methods
+			//res.ForEach(async productVM => productVM.Photo = await GetProductPhotoFromAzureStorage(productVM.Product.PhotoPath));
+			//res.AsParallel().ForAll(productVM => productVM.Photo = GetProductPhotoFromAzureStorage(productVM.Product.PhotoPath));
+
+
+			return new ProductsViewModel
+			{
+				Products = productsVM
+			};
+		}
+
+
+		public ProductsViewModel GetProducts(long userId, int page, int pageSize, IMapper mapper)
+		{
+			//Gets data from DB
+			List<(Product Product, int SoldAmount, bool InCart)> res =
+				GenericGetProductsFromDb(
+					userId: userId,
+					productId: null,
+					categoryId: null,
+					productName: null,
+					page, pageSize, mapper);
+
+			//Gets only needed fields to ViewModel
+			return GenericGetProductsViewModel(res, mapper);
+		}
+
+		public ProductViewModel GetProduct(long userId, long id, IMapper mapper)
+		{
+			//Gets data from DB
+			List<(Product Product, int SoldAmount, bool InCart)> res =
+				GenericGetProductsFromDb(
+					userId: userId,
+					productId: id,
+					categoryId: null,
+					productName: null,
+					page: 1,
+					pageSize: 1,
+					mapper);
+
+
+			//no product with this Id
+			if (res.Count == 0)
+				return null;
+
+			//Gets only needed fields to ViewModel
+			return GenericGetProductsViewModel(res, mapper).Products.FirstOrDefault();
+		}
+
+		public ProductsViewModel GetByCategory(long userId, int categoryId, int page, int pageSize, IMapper mapper)
+		{
+			//Gets data from DB
+			List<(Product Product, int SoldAmount, bool InCart)> res =
+				GenericGetProductsFromDb(
+					userId: userId,
+					productId: null,
+					categoryId: categoryId,
+					productName: null,
+					page, pageSize, mapper);
+
+			//Gets only needed fields to ViewModel
+			return GenericGetProductsViewModel(res, mapper);
+		}
+
+		public ProductsViewModel GetProductsByName(long userId, string name, int categoryId, int page, int pageSize, IMapper mapper)
+		{
+			//Gets data from DB
+			List<(Product Product, int SoldAmount, bool InCart)> res =
+				GenericGetProductsFromDb(
+					userId: userId,
+					productId: null,
+					categoryId: (categoryId != 0 ? (int?)categoryId : null),
+					productName: name,
+					page, pageSize, mapper);
+
+			//Gets only needed fields to ViewModel
+			return GenericGetProductsViewModel(res, mapper);
 		}
 
 		public void AddProduct(string name, decimal price, string photo, int categoryId, string description, string extraDescription)
@@ -195,27 +230,37 @@ namespace BlackMarket_API.Data.Repositories
 
 
 		//Gets product photo from Azure Blob Storage
-		byte[] GetProductPhotoFromAzureStorage(string photoName)
+		List<byte[]> GetProductsPhotoFromAzureStorage(List<string> photoNameList)
 		{
+			var photos = new List<byte[]>();
+
 			BlobServiceClient blobServiceClient = new BlobServiceClient(ConfigurationManager.ConnectionStrings["StorageConnectionString"].ConnectionString);
 			BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("products");
-			BlobClient blobClient = containerClient.GetBlobClient(photoName);
-			if (blobClient.Exists())
+			BlobClient blobClient;
+			foreach (string photoName in photoNameList)
 			{
-				Stream fileStream = blobClient.Download().Value.Content;
-
-				//Reads Stream as byte[]
-				byte[] photo;
-				using (var memoryStream = new MemoryStream())
+				blobClient = containerClient.GetBlobClient(photoName);
+				if (blobClient.Exists())
 				{
-					fileStream.CopyTo(memoryStream);
-					photo = memoryStream.ToArray();
-				}
+					Stream fileStream = blobClient.Download().Value.Content;
 
-				return photo;
+					//Reads Stream as byte[]
+					byte[] photo;
+					using (var memoryStream = new MemoryStream())
+					{
+						fileStream.CopyTo(memoryStream);
+						photo = memoryStream.ToArray();
+					}
+
+					photos.Add(photo);
+				}
+				else
+				{
+					photos.Add(null);
+				}
 			}
 
-			return null;
+			return photos;
 		}
 
 		bool ChangeProductPhotoInAzureStorage(string photoName, Stream newPhoto)
@@ -235,5 +280,7 @@ namespace BlackMarket_API.Data.Repositories
 
 			return true;
 		}
+
+		
 	}
 }
