@@ -2,6 +2,7 @@
 using BlackMarket_API.Data.Interfaces;
 using BlackMarket_API.Data.Models;
 using BlackMarket_API.Data.ViewModels;
+using BlackMarket_API.ExtensionMethods;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -48,7 +49,9 @@ namespace BlackMarket_API.Data.Repositories
 					.ToList();
 
 				//Gets products photo
-				res.ForEach(async productVM => productVM.Photo = await GetProductPhotoFromAzureStorage(productVM.Product.PhotoPath));
+				//res.ForEach(async productVM => productVM.Photo = await GetProductPhotoFromAzureStorage(productVM.Product.PhotoPath));
+				res.AsParallel().ForAll(productVM => productVM.Photo = GetProductPhotoFromAzureStorage(productVM.Product.PhotoPath));
+
 
 				return new ProductsViewModel()
 				{
@@ -57,7 +60,7 @@ namespace BlackMarket_API.Data.Repositories
 			}
 		}
 		
-		public async Task<ProductViewModel> GetProduct(long userId, long id)
+		public ProductViewModel GetProduct(long userId, long id)
 		{
 			using (BlackMarket context = new BlackMarket())
 			{
@@ -82,7 +85,7 @@ namespace BlackMarket_API.Data.Repositories
 				//var physicalPathToPhoto = HttpContext.Current.Server.MapPath("~\\wwwroot\\" + res.Product.PhotoPath);
 				//var photo = File.ReadAllBytes(physicalPathToPhoto);
 				
-				res.Photo = await GetProductPhotoFromAzureStorage(res.Product.PhotoPath);
+				res.Photo = GetProductPhotoFromAzureStorage(res.Product.PhotoPath);
 
 				return res;
 			}
@@ -108,7 +111,7 @@ namespace BlackMarket_API.Data.Repositories
 					.ToList();
 
 				//Gets products photo
-				res.ForEach(async productVM => productVM.Photo = await GetProductPhotoFromAzureStorage(productVM.Product.PhotoPath));
+				res.AsParallel().ForAll(productVM => productVM.Photo = GetProductPhotoFromAzureStorage(productVM.Product.PhotoPath));
 
 				return new ProductsViewModel()
 				{
@@ -143,7 +146,7 @@ namespace BlackMarket_API.Data.Repositories
 					.ToList();
 
 				//Gets products photo
-				res.ForEach(async productVM => productVM.Photo = await GetProductPhotoFromAzureStorage(productVM.Product.PhotoPath));
+				res.AsParallel().ForAll(productVM => productVM.Photo = GetProductPhotoFromAzureStorage(productVM.Product.PhotoPath));
 
 				return new ProductsViewModel()
 				{
@@ -192,14 +195,14 @@ namespace BlackMarket_API.Data.Repositories
 
 
 		//Gets product photo from Azure Blob Storage
-		async Task<byte[]> GetProductPhotoFromAzureStorage(string photoName)
+		byte[] GetProductPhotoFromAzureStorage(string photoName)
 		{
 			BlobServiceClient blobServiceClient = new BlobServiceClient(ConfigurationManager.ConnectionStrings["StorageConnectionString"].ConnectionString);
 			BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("products");
 			BlobClient blobClient = containerClient.GetBlobClient(photoName);
-			if (await blobClient.ExistsAsync())
+			if (blobClient.Exists())
 			{
-				var fileStream = (await blobClient.DownloadAsync()).Value.Content;
+				Stream fileStream = blobClient.Download().Value.Content;
 
 				//Reads Stream as byte[]
 				byte[] photo;

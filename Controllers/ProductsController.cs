@@ -57,9 +57,9 @@ namespace BlackMarket_API.Controllers
 		}
 
 		//Returns null if there is no such a product
-		public async Task<ProductViewModel> Get(long id)
+		public ProductViewModel Get(long id)
 		{
-			return await productRepository.GetProduct(User.Identity.GetUserId<long>(), id);
+			return productRepository.GetProduct(User.Identity.GetUserId<long>(), id);
 		}
 
 		public ProductsViewModel Get(int categoryId, int page, int pageSize)

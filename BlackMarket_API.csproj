@@ -323,6 +323,7 @@
     <Compile Include="Data\Repositories\ProductRepository.cs" />
     <Compile Include="Data\ViewModels\CategoryViewModel.cs" />
     <Compile Include="Data\ViewModels\ProductViewModels.cs" />
+    <Compile Include="ExtensionMethods\ListExtension.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
