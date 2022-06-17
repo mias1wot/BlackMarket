@@ -28,5 +28,22 @@ namespace BlackMarket_API
 			//GlobalConfiguration.Configuration.Formatters.Remove(GlobalConfiguration.Configuration.Formatters.XmlFormatter);
 
 		}
+
+
+		//The request failed with code 405, I added this stupid method (it duplicates headers, it's bad)
+		//The request began to work. I commented out this method. The request still works...
+		//What is going on .Net??
+		//protected void Application_BeginRequest(Object sender, EventArgs e)
+		//{
+			//HttpContext.Current.Response.AddHeader("Access-Control-Allow-Origin", "*");
+			//if (HttpContext.Current.Request.HttpMethod == "OPTIONS")
+			//{
+				//HttpContext.Current.Response.AddHeader("Cache-Control", "no-cache");
+				//HttpContext.Current.Response.AddHeader("Access-Control-Allow-Methods", "GET, POST");
+				//HttpContext.Current.Response.AddHeader("Access-Control-Allow-Headers", "Content-Type, Accept");
+				//HttpContext.Current.Response.AddHeader("Access-Control-Max-Age", "1728000");
+				//HttpContext.Current.Response.End();
+			//}
+		//}
 	}
 }
