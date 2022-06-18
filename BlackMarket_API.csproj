@@ -330,7 +330,8 @@
     <Compile Include="Data\Repositories\ProductRepository.cs" />
     <Compile Include="Data\ViewModels\CategoryViewModel.cs" />
     <Compile Include="Data\ViewModels\ProductViewModels.cs" />
-    <Compile Include="EnhancedAutomapper\QueryableExtensions.cs" />
+    <Compile Include="EnhancedAutomapperNS\EnhancedAutomapper.cs" />
+    <Compile Include="EnhancedAutomapperNS\QueryableExtensions.cs" />
     <Compile Include="ExtensionMethods\ListExtension.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -349,6 +350,7 @@
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\ApplicationOAuthProvider.cs" />
+    <Compile Include="Attributes\EnhancedAutomapperAttributes.cs" />
     <Compile Include="Results\ChallengeResult.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>

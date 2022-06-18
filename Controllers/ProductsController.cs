@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using BlackMarket_API.Attributes;
 using BlackMarket_API.Data.BindingModels;
 using BlackMarket_API.Data.Interfaces;
 using BlackMarket_API.Data.Models;
@@ -16,6 +17,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
@@ -118,6 +120,16 @@ namespace BlackMarket_API.Controllers
 		public void Test()
 		{
 			productRepository.Test();
+			//var a = new Data.ViewModels.TestProductViewModel();
+
+			//Assembly.GetExecutingAssembly().GetTypes().Where(t => t.IsDefined(typeof(ApiControllerAttribute)) && !t.IsAbstract)
+
+
+			//var attr = typeof(Data.ViewModels.TestProductViewModel).GetProperty("SoldAmount").GetCustomAttributes(true);
+			//foreach (EnhancedAutomapperAttributes.GroupJoin.ActionOverInnerCollection atr in attr)
+			//{
+			//	System.Console.WriteLine("hehello");
+			//}
 		}
 
 		//Sends image to Client. This works.

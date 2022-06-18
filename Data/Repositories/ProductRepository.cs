@@ -3,6 +3,7 @@ using Azure.Storage.Blobs;
 using BlackMarket_API.Data.Interfaces;
 using BlackMarket_API.Data.Models;
 using BlackMarket_API.Data.ViewModels;
+using BlackMarket_API.EnhancedAutomapperNS;
 using BlackMarket_API.ExtensionMethods;
 using DevTrends.DataHelpers;
 using System;
@@ -27,12 +28,15 @@ namespace BlackMarket_API.Data.Repositories
 		//Delete this method "Test" when you're done
 		public void Test()
 		{
-			var file = "Product\\04b017b5fde4d2802cb5d405e4dd2860.png";
-			var physicalPathToPhoto = HttpContext.Current.Server.MapPath("~\\wwwroot\\" + file);
-			//var photo = File.ReadAllBytes(physicalPathToPhoto);
-			var photoStream = File.OpenRead(physicalPathToPhoto);
+			using (BlackMarket context = new BlackMarket())
+			{
+				//var res = EnhancedAutomapper.Map<Product, ProductViewModel>(context.Product);
+				//var query = EnhancedAutomapper.MapFrom(context.Product).To<ProductViewModel>();
+				//var query = context.Product.EnhancedMap<Product, ProductViewModel>();
+				var query = context.Product.EnhancedMap().To<ProductViewModel>();
 
-			ChangeProductPhotoInAzureStorage("1", photoStream);
+				var res = query.ToList();
+			}
 		}
 
 		private List<(Product Product, int SoldAmount, bool InCart)> GenericGetProductsFromDb(long userId, long? productId, int? categoryId, string productName, int page, int pageSize, IMapper mapper)
@@ -43,6 +47,17 @@ namespace BlackMarket_API.Data.Repositories
 			//You need to write complex tasks by your own
 			//File: EnhancedAutomapper/QueryableExtensions.cs
 			//var res = context.Product.Project().To<ProductViewModel>().ToList();
+
+			//Using EnhancedAutomapper
+			//using (BlackMarket context = new BlackMarket())
+			//{
+			//	//var res = EnhancedAutomapper.Map<Product, ProductViewModel>(context.Product);
+			//	//var query = EnhancedAutomapper.MapFrom(context.Product).To<ProductViewModel>();
+			//	//var query = context.Product.EnhancedMap<Product, ProductViewModel>();
+			//	var query = context.Product.EnhancedMap().To<ProductViewModel>();
+
+			//	var res = query.ToList();
+			//}
 
 
 

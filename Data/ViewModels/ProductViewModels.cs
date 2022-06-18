@@ -3,9 +3,40 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using static BlackMarket_API.Attributes.EnhancedAutomapperAttributes;
+using BlackMarket_API.Attributes;
 
 namespace BlackMarket_API.Data.ViewModels
 {
+	public class TestProductViewModel
+	{
+		public long ProductId { get; set; }
+		public string Name { get; set; }
+
+
+		[EnhancedAutomapperAttributes.FormedFrom(DbFieldName = nameof(Product.PhotoPath))]
+		public byte[] Photo { get; set; }
+
+
+		//[EnhancedAutomapperAttributes.GroupJoin(nameof(Cart), nameof(Product.ProductId), nameof(Cart.ProductId),
+		//	GroupJoin.Operations.Sum, "Amount")]
+
+		[EnhancedAutomapperAttributes.GroupJoin(nameof(Cart), nameof(Product.ProductId), nameof(Cart.ProductId))]
+		[EnhancedAutomapperAttributes.GroupJoin.ActionOverInnerCollection(GroupJoin.Operations.Sum, "Amount", typeof(TestProductViewModel))]
+		public int SoldAmount { get; set; }
+
+
+		[EnhancedAutomapperAttributes.GroupJoin(nameof(Cart), nameof(Product.ProductId), nameof(Cart.ProductId))]
+			//new List<EnhancedAutomapperOperations>() { (GroupJoin.Operations.Select, "UserId"), (GroupJoin.Operations.Contains, "PassedParam::userId") })]
+		[EnhancedAutomapperAttributes.GroupJoin.ActionOverInnerCollection(GroupJoin.Operations.Select, "UserId", typeof(TestProductViewModel))]	
+		
+		//Warning! This has passed parameter - the parameter you need to pass into method and use
+		[EnhancedAutomapperAttributes.GroupJoin.ActionOverInnerCollection(GroupJoin.Operations.Contains, "PassedParam::userId", typeof(TestProductViewModel))]	
+		public bool InCart { get; set; }
+	}
+
+
+
 	public class ProductsViewModel
 	{
 		public IEnumerable<ProductViewModel> Products { get; set; }
