@@ -1,4 +1,5 @@
-﻿using BlackMarket_API.Data.Interfaces;
+﻿using AutoMapper;
+using BlackMarket_API.Data.Interfaces;
 using BlackMarket_API.Data.Models;
 using BlackMarket_API.Data.ViewModels;
 using System;
@@ -12,8 +13,14 @@ namespace BlackMarket_API.Data.Repositories
 {
 	public class CartRepository : ICartRepository
 	{
-		public CartProductsViewModel GetProducts(long userId)
+		const string _productsContainerName = "products";
+
+
+		public CartProductsViewModel GetProducts(long userId, IMapper mapper)
 		{
+			if (userId == 0)
+				return null;
+
 			using (BlackMarket context = new BlackMarket())
 			{
 				var cartProducts = context.Cart
@@ -21,12 +28,29 @@ namespace BlackMarket_API.Data.Repositories
 					.Join(context.Product,
 					cart => cart.ProductId,
 					product => product.ProductId,
-					(cart, product) => new CartProductViewModel() { Product = product, Amount = cart.Amount })
+					(cart, product) => new { Product = product, Amount = cart.Amount })
 					.ToList();
+
+				//Gets ViewModels of cart products
+				var cartProductVMList = cartProducts.Select(cartProduct => 
+				{
+					CartProductViewModel cartProductVM = mapper.Map<CartProductViewModel>(cartProduct.Product);
+					cartProductVM.Amount = cartProduct.Amount;
+					return cartProductVM;
+				}).ToList();
+				
+				//Gets photos from Azure
+				var photos = AzureStorage.GetPhotosFromAzureStorage(_productsContainerName, cartProducts.Select(cartProduct => cartProduct.Product.PhotoPath).ToList());
+				var photoIterator = photos.GetEnumerator();
+				cartProductVMList.ForEach(cartProductVM =>
+				{
+					photoIterator.MoveNext();
+					cartProductVM.Photo = photoIterator.Current;
+				});
 
 				return new CartProductsViewModel
 				{
-					Products = cartProducts,
+					Products = cartProductVMList,
 					TotalPrice = cartProducts.Sum(cartProduct => cartProduct.Amount * cartProduct.Product.Price)
 				};
 			}
@@ -34,6 +58,9 @@ namespace BlackMarket_API.Data.Repositories
 
 		public bool AddProduct(long userId, long productId, int amount = 1)
 		{
+			if (userId == 0)
+				return false;
+
 			using (BlackMarket context = new BlackMarket())
 			{
 				Cart cart = new Cart() { UserId = userId, ProductId = productId, Amount = amount };
@@ -55,6 +82,9 @@ namespace BlackMarket_API.Data.Repositories
 
 		public ChangeProductAmountViewModel ChangeProductAmount(long userId, long productId, int changeAmountOn)
 		{
+			if (userId == 0)
+				return null;
+
 			using (BlackMarket context = new BlackMarket())
 			{
 				ChangeProductAmountViewModel changeProductAmountVM = new ChangeProductAmountViewModel() { ProductId = productId };

@@ -1,4 +1,5 @@
-﻿using BlackMarket_API.Data.Interfaces;
+﻿using AutoMapper;
+using BlackMarket_API.Data.Interfaces;
 using BlackMarket_API.Data.ViewModels;
 using Microsoft.AspNet.Identity;
 using System;
@@ -10,20 +11,24 @@ using System.Web.Http;
 
 namespace BlackMarket_API.Controllers
 {
-	[Authorize]
+	//[Authorize]
 	public class CartController : ApiController
     {
         readonly ICartRepository cartRepository;
-        public CartController(ICartRepository cartRepository)
+        readonly IMapper mapper;
+
+
+        public CartController(ICartRepository cartRepository, IMapper mapper)
         {
             this.cartRepository = cartRepository;
+            this.mapper = mapper;
         }
 
 
 
         public CartProductsViewModel Get()
 		{
-            return cartRepository.GetProducts(User.Identity.GetUserId<long>());
+            return cartRepository.GetProducts(User.Identity.GetUserId<long>(), mapper);
 		}
 
         //This is POST method

@@ -12,12 +12,12 @@ namespace BlackMarket_API.Data.Interfaces
 {
 	public interface IProductRepository
 	{
-		ProductsViewModel GetProducts(long userId, int page, int pageSize, IMapper mapper);
-		ProductViewModel GetProduct(long userId, long id, IMapper mapper);
-		ProductsViewModel GetByCategory(long userId, int categoryId, int page, int pageSize, IMapper mapper);
-		ProductsViewModel GetProductsByName(long userId, string name, int categoryId, int page, int pageSize, IMapper mapper);
+		HomeProductsViewModel GetProducts(long userId, int page, int pageSize, IMapper mapper);
+		OpenedProductViewModel GetProduct(long userId, long id, IMapper mapper);
+		HomeProductsViewModel GetByCategory(long userId, int categoryId, int page, int pageSize, IMapper mapper);
+		HomeProductsViewModel GetProductsByName(long userId, string name, int categoryId, int page, int pageSize, IMapper mapper);
 		void AddProduct(string Name, decimal price, string photo, int categoryId, string description, string extraDescription);
 		bool ChangeProductPhoto(int productId, string photoExtension, Stream newPhoto);
-		void Test();
+		void Test(IMapper mapper);
 	}
 }

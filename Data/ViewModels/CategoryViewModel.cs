@@ -6,8 +6,18 @@ using System.Web;
 
 namespace BlackMarket_API.Data.ViewModels
 {
+	public class CategoriesViewModel
+	{
+		public IEnumerable<CategoryViewModel> Categories { get; set; }
+	}
+
 	public class CategoryViewModel
 	{
-		public IEnumerable<Category> Categories { get; set; }
+		public int CategoryId { get; set; }
+		public string Name { get; set; }
+		public string Description { get; set; }
+
+		//made from PhotoPath
+		public byte[] Photo { get; set; }
 	}
 }

@@ -29,6 +29,18 @@ namespace BlackMarket_API.EnhancedAutomapperNS
 		{
 			return new EnhancedAutomapperFrom<TSource>(source);
 		}
+
+		delegate void del();
+
+		//public static TDest Test<TSource, TDest>(this TSource source)
+		//public static IQueryable<TDest> Test<TSource, TDest>(this IQueryable<TSource> source)
+		public static Expression<Func<TSource, TDest>> Test<TSource, TDest>()
+		{
+			var queryExpression = EnhancedAutomapperFrom<TSource>.BuildExpression<TDest>();
+			//return source.Select(queryExpression);
+			return queryExpression;
+			//return EnhancedAutomapperFrom<TSource>.TestTo2<TDest>(source);
+		}
 	}
 
 	public class EnhancedAutomapperFrom<TSource>
@@ -49,7 +61,42 @@ namespace BlackMarket_API.EnhancedAutomapperNS
 
 			return source.Select(queryExpression);
 		}
+		
+		//TEST AREA
+		public static Expression<Func<TSource, TDest>> TestTo<TDest>(TSource source)
+		{
+			var queryExpression = TestBuildExpression<TDest>(source);
 
+			return queryExpression;
+		}
+		
+		public static TDest TestTo2<TDest>(TSource source)
+		{
+			Expression<Func<TSource, TDest>> queryExpression = TestBuildExpression<TDest>(source);
+
+			return queryExpression.Compile()(source);
+		}
+
+		private static Expression<Func<TSource, TDest>> TestBuildExpression<TDest>(TSource source)
+		{
+			var sourceProperties = typeof(TSource).GetProperties();
+			var destinationProperties = typeof(TDest).GetProperties().Where(dest => dest.CanWrite);
+			var parameterExpression = Expression.Parameter(typeof(TSource), "src");
+
+			var bindings = destinationProperties
+								.Select(destinationProperty => BuildBinding(parameterExpression, destinationProperty, sourceProperties))
+								.Where(binding => binding != null);
+
+			var expression = Expression.Lambda<Func<TSource, TDest>>(Expression.MemberInit(Expression.New(typeof(TDest)), bindings), parameterExpression);
+
+			var key = GetCacheKey<TDest>();
+
+			ExpressionCache.Add(key, expression);
+
+			return expression;
+		}
+
+		//END OF TEST AREA
 
 		//Cache
 		private static Expression<Func<TSource, TDest>> GetCachedExpression<TDest>()
@@ -60,7 +107,8 @@ namespace BlackMarket_API.EnhancedAutomapperNS
 		}
 
 		//Building expression
-		private static Expression<Func<TSource, TDest>> BuildExpression<TDest>()
+		//private static Expression<Func<TSource, TDest>> BuildExpression<TDest>()
+		public static Expression<Func<TSource, TDest>> BuildExpression<TDest>()
 		{
 			var sourceProperties = typeof(TSource).GetProperties();
 			var destinationProperties = typeof(TDest).GetProperties().Where(dest => dest.CanWrite);

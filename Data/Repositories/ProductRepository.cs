@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Azure.Storage.Blobs;
 using BlackMarket_API.Data.Interfaces;
 using BlackMarket_API.Data.Models;
@@ -18,6 +19,10 @@ using System.Web;
 //var physicalPathToPhoto = HttpContext.Current.Server.MapPath("~\\wwwroot\\" + res.Product.PhotoPath);
 //var photo = File.ReadAllBytes(physicalPathToPhoto);
 
+//Gets products photo - previously used methods for getting photo from Azure Storage
+//res.ForEach(async productVM => productVM.Photo = await GetProductPhotoFromAzureStorage(productVM.Product.PhotoPath));
+//res.AsParallel().ForAll(productVM => productVM.Photo = GetProductPhotoFromAzureStorage(productVM.Product.PhotoPath));
+
 
 namespace BlackMarket_API.Data.Repositories
 {
@@ -25,22 +30,14 @@ namespace BlackMarket_API.Data.Repositories
 	//If product amount exceeds int.MaxValue, you need to implement and use BigSkip (just Skip in cycle).
 	public class ProductRepository: IProductRepository
 	{
+		private const string _containerName = "products";
+
+
 		//Delete this method "Test" when you're done
-		public void Test()
+		public void Test(IMapper mapper)
 		{
-			using (BlackMarket context = new BlackMarket())
-			{
-				//var res = EnhancedAutomapper.Map<Product, ProductViewModel>(context.Product);
-				//var query = EnhancedAutomapper.MapFrom(context.Product).To<ProductViewModel>();
-				//var query = context.Product.EnhancedMap<Product, ProductViewModel>();
-				var query = context.Product.EnhancedMap().To<ProductViewModel>();
+			return;
 
-				var res = query.ToList();
-			}
-		}
-
-		private List<(Product Product, int SoldAmount, bool InCart)> GenericGetProductsFromDb(long userId, long? productId, int? categoryId, string productName, int page, int pageSize, IMapper mapper)
-		{
 			//no aggregation, no sum, just plain map object to object.
 			//But this builds query that will return only needed fields for ViewModel from database
 			//While automapper processes data after they're received from DB
@@ -48,6 +45,8 @@ namespace BlackMarket_API.Data.Repositories
 			//File: EnhancedAutomapper/QueryableExtensions.cs
 			//var res = context.Product.Project().To<ProductViewModel>().ToList();
 
+
+			/*This shows how the code should look like for client to use */
 			//Using EnhancedAutomapper
 			//using (BlackMarket context = new BlackMarket())
 			//{
@@ -59,17 +58,60 @@ namespace BlackMarket_API.Data.Repositories
 			//	var res = query.ToList();
 			//}
 
+			using (BlackMarket context = new BlackMarket())
+			{
+				//var res = EnhancedAutomapper.Map<Product, ProductViewModel>(context.Product);
+				//var query = EnhancedAutomapper.MapFrom(context.Product).To<ProductViewModel>();
+				//var query = context.Product.EnhancedMap<Product, ProductViewModel>();
+
+				//var query = context.Product.EnhancedMap().To<ProductViewModel>();
 
 
+				//var e = context.Product.AsEnumerable().Select(product => mapper.Map<Product, ProductViewModel>(product));
+				//var ee = context.Product.ProjectTo<ProductViewModel>();
+				//var ter = ee.ToList();
+				//var t = 43;
+
+				var query = context.Product
+					.GroupJoin(context.Cart,
+					product => product.ProductId,
+					cart => cart.ProductId,
+					(product, cartCollection) => new
+					{
+						//productViewModel = EnhancedAutomapperFrom<Product>.TestTo2<ProductViewModel>(product),
+						//productViewModel = EnhancedAutomapper.Test<Product, ProductViewModel>(product),
+						//productViewModel = product.Test<Product, ProductViewModel>(),
+						//productViewModel = ((IQueryable)new List<Product>() { product }).Test()
+						//productViewModel = ((IQueryable<Product>)new List<Product>() { product }).Select(EnhancedAutomapper.Test<Product, ProductViewModel>()),
+						//productViewModel = Queryable.Select(cartCollection, EnhancedAutomapper.Test<Product, ProductViewModel>()),
+						//productViewModel = Enumerable.Select(product, EnhancedAutomapper.Test<Product, ProductViewModel>()),
+						//productViewModel = Enumerable.Select<Product, ProductViewModel>(new List<Product>() { product }, EnhancedAutomapper.Test<Product, ProductViewModel>().Compile()),
+						//productViewModel = EnhancedAutomapper.Test<Product, ProductViewModel>(),
+						//productViewModel = Enumerable.Select<Product, ProductViewModel>(new List<Product>(), EnhancedAutomapper.Test<Product, ProductViewModel>(() => SoldAmount = cartCollection.Sum(cart => (int?)cart.Amount) ?? 0).Compile()),
+						//productViewModel = Queryable.Select<Product, ProductViewModel>(null, EnhancedAutomapper.Test<Product, ProductViewModel>())),
+
+						//Product = product,
+						//ProductViewModel = new List<Product>() { product }.Select(product1 => EnhancedAutomapperFrom<Product>.TestTo<ProductViewModel>(product1)).First(),
+						//Price = new List<Product>() { product }.Select(product1 => product1.Price),
+						//Pr = Enumerable.Select(product, (Product product1) => product1.Price)
+						//Product = product,
+						SoldAmount = cartCollection.Sum(cart => (int?)cart.Amount) ?? 0,
+						InCart = cartCollection.Select(cart => cart.UserId).Contains(0)
+					});
+
+				var res = query.ToList();
+				//var a = "kfdj";
+			}
+		}
+
+		private List<(Product Product, int SoldAmount, bool InCart)> GenericGetProductsFromDb(long userId, int? categoryId, string productName, int page, int pageSize, IMapper mapper)
+		{
 			using (BlackMarket context = new BlackMarket())
 			{
 				IQueryable<Product> products = context.Product;
 
 				if (categoryId != null)
 					products = products.Where(product => product.CategoryId == categoryId);
-
-				if (productId != null)
-					products = products.Where(product => product.ProductId == productId);
 
 				if (productName != null)
 					products = products.Where(product => product.Name.Contains(productName));
@@ -100,109 +142,130 @@ namespace BlackMarket_API.Data.Repositories
 			}
 		}
 
-		private ProductsViewModel GenericGetProductsViewModel(List<(Product Product, int SoldAmount, bool InCart)> products, IMapper mapper)
+		private HomeProductsViewModel GenericGetHomeProductsViewModel(List<(Product Product, int SoldAmount, bool InCart)> products, IMapper mapper)
 		{
 			//Gets only needed fields to ViewModel
-			var productsVM = new List<ProductViewModel>();
+			var productViewModels = new List<HomeProductViewModel>();
 
 			products.ForEach(productAndOther =>
 			{
-				var productVM = mapper.Map<ProductViewModel>(productAndOther.Product);
+				var productVM = mapper.Map<HomeProductViewModel>(productAndOther.Product);
 				productVM.SoldAmount = productAndOther.SoldAmount;
 				productVM.InCart = productAndOther.InCart;
 
-				productsVM.Add(productVM);
+				productViewModels.Add(productVM);
 			});
 
 
 			//Gets products photo
-			var photos = GetProductsPhotoFromAzureStorage(products.Select(productAndOther => productAndOther.Product.PhotoPath).ToList());
+			var photos = AzureStorage.GetPhotosFromAzureStorage(_containerName, products.Select(productAndOther => productAndOther.Product.PhotoPath).ToList());
 			var photoIterator = photos.GetEnumerator();
 
-			productsVM.ForEach(productVM =>
+			productViewModels.ForEach(productVM =>
 			{
 				photoIterator.MoveNext();
 				productVM.Photo = photoIterator.Current;
 			});
 
 
-			//Gets products photo - previously used methods
-			//res.ForEach(async productVM => productVM.Photo = await GetProductPhotoFromAzureStorage(productVM.Product.PhotoPath));
-			//res.AsParallel().ForAll(productVM => productVM.Photo = GetProductPhotoFromAzureStorage(productVM.Product.PhotoPath));
 
-
-			return new ProductsViewModel
+			return new HomeProductsViewModel
 			{
-				Products = productsVM
+				Products = productViewModels
 			};
 		}
 
 
-		public ProductsViewModel GetProducts(long userId, int page, int pageSize, IMapper mapper)
+		public HomeProductsViewModel GetProducts(long userId, int page, int pageSize, IMapper mapper)
 		{
 			//Gets data from DB
 			List<(Product Product, int SoldAmount, bool InCart)> res =
 				GenericGetProductsFromDb(
 					userId: userId,
-					productId: null,
 					categoryId: null,
 					productName: null,
 					page, pageSize, mapper);
 
 			//Gets only needed fields to ViewModel
-			return GenericGetProductsViewModel(res, mapper);
+			return GenericGetHomeProductsViewModel(res, mapper);
 		}
 
-		public ProductViewModel GetProduct(long userId, long id, IMapper mapper)
+		public OpenedProductViewModel GetProduct(long userId, long id, IMapper mapper)
+		{
+			using(BlackMarket context = new BlackMarket())
+			{
+				//Gets data from DB
+				var extendedProduct = context.Product
+					.Where(product => product.ProductId == id)
+					.GroupJoin(context.Cart,
+						product => product.ProductId,
+						cart => cart.ProductId,
+						(product, cartCollection) => new
+						{
+							Product = product,
+							SoldAmount = cartCollection.Sum(cart => (int?)cart.Amount) ?? 0,
+							InCart = cartCollection.Select(cart => cart.UserId).Contains(userId)
+						})
+					.Join(context.Category,
+						productAndOther => productAndOther.Product.CategoryId,
+						category => category.CategoryId,
+						(productAndOther, category) => new
+						{
+							Product = productAndOther.Product,
+							SoldAmount = productAndOther.SoldAmount,
+							InCart = productAndOther.InCart,
+							CategoryName = category.Name
+						})
+					.FirstOrDefault();
+
+
+				//no product with this Id
+				if (extendedProduct == null)
+					return null;
+
+
+				//Gets ViewModel
+				var openedProductVM = mapper.Map<OpenedProductViewModel>(extendedProduct.Product);
+				openedProductVM.CategoryName = extendedProduct.CategoryName;
+				openedProductVM.SoldAmount = extendedProduct.SoldAmount;
+				openedProductVM.InCart = extendedProduct.InCart;
+
+
+				//Gets product photo
+				var photos = AzureStorage.GetPhotosFromAzureStorage(_containerName, new List<string>() { extendedProduct.Product.PhotoPath });
+				openedProductVM.Photo = photos.FirstOrDefault();
+
+
+				return openedProductVM;
+			}
+		}
+
+		public HomeProductsViewModel GetByCategory(long userId, int categoryId, int page, int pageSize, IMapper mapper)
 		{
 			//Gets data from DB
 			List<(Product Product, int SoldAmount, bool InCart)> res =
 				GenericGetProductsFromDb(
 					userId: userId,
-					productId: id,
-					categoryId: null,
-					productName: null,
-					page: 1,
-					pageSize: 1,
-					mapper);
-
-
-			//no product with this Id
-			if (res.Count == 0)
-				return null;
-
-			//Gets only needed fields to ViewModel
-			return GenericGetProductsViewModel(res, mapper).Products.FirstOrDefault();
-		}
-
-		public ProductsViewModel GetByCategory(long userId, int categoryId, int page, int pageSize, IMapper mapper)
-		{
-			//Gets data from DB
-			List<(Product Product, int SoldAmount, bool InCart)> res =
-				GenericGetProductsFromDb(
-					userId: userId,
-					productId: null,
 					categoryId: categoryId,
 					productName: null,
 					page, pageSize, mapper);
 
 			//Gets only needed fields to ViewModel
-			return GenericGetProductsViewModel(res, mapper);
+			return GenericGetHomeProductsViewModel(res, mapper);
 		}
 
-		public ProductsViewModel GetProductsByName(long userId, string name, int categoryId, int page, int pageSize, IMapper mapper)
+		public HomeProductsViewModel GetProductsByName(long userId, string name, int categoryId, int page, int pageSize, IMapper mapper)
 		{
 			//Gets data from DB
 			List<(Product Product, int SoldAmount, bool InCart)> res =
 				GenericGetProductsFromDb(
 					userId: userId,
-					productId: null,
 					categoryId: (categoryId != 0 ? (int?)categoryId : null),
 					productName: name,
 					page, pageSize, mapper);
 
 			//Gets only needed fields to ViewModel
-			return GenericGetProductsViewModel(res, mapper);
+			return GenericGetHomeProductsViewModel(res, mapper);
 		}
 
 		public void AddProduct(string name, decimal price, string photo, int categoryId, string description, string extraDescription)
@@ -230,6 +293,9 @@ namespace BlackMarket_API.Data.Repositories
 			{
 				var product = context.Product.Find(productId);
 
+				if (product == null)
+					return false;
+
 				//if PhotoPath was smth else than ProductId + extension
 				string fileName = product.ProductId.ToString() + photoExtension;
 				if(product.PhotoPath != fileName)
@@ -238,64 +304,8 @@ namespace BlackMarket_API.Data.Repositories
 					context.SaveChanges();
 				}
 				
-				return ChangeProductPhotoInAzureStorage(product.PhotoPath, newPhoto);
+				return AzureStorage.UploadPhotoToAzureStorage(_containerName, product.PhotoPath, newPhoto, true);
 			}
 		}
-
-
-
-		//Gets product photo from Azure Blob Storage
-		List<byte[]> GetProductsPhotoFromAzureStorage(List<string> photoNameList)
-		{
-			var photos = new List<byte[]>();
-
-			BlobServiceClient blobServiceClient = new BlobServiceClient(ConfigurationManager.ConnectionStrings["StorageConnectionString"].ConnectionString);
-			BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("products");
-			BlobClient blobClient;
-			foreach (string photoName in photoNameList)
-			{
-				blobClient = containerClient.GetBlobClient(photoName);
-				if (blobClient.Exists())
-				{
-					Stream fileStream = blobClient.Download().Value.Content;
-
-					//Reads Stream as byte[]
-					byte[] photo;
-					using (var memoryStream = new MemoryStream())
-					{
-						fileStream.CopyTo(memoryStream);
-						photo = memoryStream.ToArray();
-					}
-
-					photos.Add(photo);
-				}
-				else
-				{
-					photos.Add(null);
-				}
-			}
-
-			return photos;
-		}
-
-		bool ChangeProductPhotoInAzureStorage(string photoName, Stream newPhoto)
-		{
-			BlobServiceClient blobServiceClient = new BlobServiceClient(ConfigurationManager.ConnectionStrings["StorageConnectionString"].ConnectionString);
-			BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("products");
-			BlobClient blobClient = containerClient.GetBlobClient(photoName);
-
-			try
-			{
-				blobClient.Upload(newPhoto, true);
-			}
-			catch (Exception e)
-			{
-				return false;
-			}
-
-			return true;
-		}
-
-		
 	}
 }

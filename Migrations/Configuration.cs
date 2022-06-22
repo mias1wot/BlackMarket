@@ -40,14 +40,14 @@ namespace BlackMarket_API.Migrations
 			//Add categories to DB
 			List<Category> categories = new List<Category>
 			{
-				new Category() { Name = "Accessories", Description = "" },
-				new Category() { Name = "Gifts", Description = "" },
-				new Category() { Name = "Food", Description = "" },
-				new Category() { Name = "Diet", Description = "" },
-				new Category() { Name = "Beaty", Description = "" },
-				new Category() { Name = "Clothes", Description = "" },
-				new Category() { Name = "Gaming", Description = "" },
-				new Category() { Name = "Coffee", Description = "" }
+				new Category() { Name = "Accessories", PhotoPath = "1.jpg", Description = "" },
+				new Category() { Name = "Gifts", PhotoPath = "2.png", Description = "" },
+				new Category() { Name = "Food", PhotoPath = "3.png", Description = "" },
+				new Category() { Name = "Diet", PhotoPath = "4.png", Description = "" },
+				new Category() { Name = "Beaty", PhotoPath = "5.png", Description = "" },
+				new Category() { Name = "Clothes", PhotoPath = "6.png", Description = "" },
+				new Category() { Name = "Gaming", PhotoPath = "7.png", Description = "" },
+				new Category() { Name = "Coffee", PhotoPath = "8.png", Description = "" }
 			};
 			
 			context.Category.AddOrUpdate(category => category.Name, categories.ToArray());
@@ -57,13 +57,19 @@ namespace BlackMarket_API.Migrations
 			//Add products to DB
 			List<Product> products = new List<Product>
 			{
-				//new Product() { Name = "", Price = M,  PhotoPath = "bulk", CategoryId = , Description = "" },
-				new Product() { Name = "Wiley Saddle Bag - Fossil", Price = 180M, PhotoPath = "bulk", CategoryId = CategoryFrom(categories, "Accessories"), Description = "" },
-				new Product() { Name = "UFO Basket Bag by MAM", Price = 180M,  PhotoPath = "bulk", CategoryId = CategoryFrom(categories, "Accessories"), Description = "" },
-				new Product() { Name = "Recycled Nylon in Black", Price = 220M,  PhotoPath = "bulk", CategoryId = CategoryFrom(categories, "Accessories"), Description = "" },
-				new Product() { Name = "Gift Box", Price = 0.99M,  PhotoPath = "bulk", CategoryId = CategoryFrom(categories, "Gifts"), Description = "" },
-				new Product() { Name = "Zakarpatc'ki Mlynchiky", Price = 10M,  PhotoPath = "bulk", CategoryId = CategoryFrom(categories, "Food"), Description = "" },
-				new Product() { Name = "Chicken Pie", Price = 15M,  PhotoPath = "bulk", CategoryId = CategoryFrom(categories, "Food"), Description = "" }
+				//new Product() { Name = "", Price = M,  PhotoPath = "", CategoryId = , Description = "" },
+				new Product() { Name = "Wiley Saddle Bag - Fossil", Price = 180M, PhotoPath = "1.png", CategoryId = CategoryFrom(categories, "Accessories"), Description = "" },
+				new Product() { Name = "UFO Basket Bag by MAM", Price = 180M,  PhotoPath = "2.png", CategoryId = CategoryFrom(categories, "Accessories"), Description = "" },
+				new Product() { Name = "Recycled Nylon in Black", Price = 220M,  PhotoPath = "3.png", CategoryId = CategoryFrom(categories, "Accessories"), Description = "" },
+				new Product() { Name = "Gift Box", Price = 0.99M,  PhotoPath = "4.jpg", CategoryId = CategoryFrom(categories, "Gifts"), Description = "" },
+				new Product() { Name = "Zakarpatc'ki Mlynchiky", Price = 10M,  PhotoPath = "5.jpg", CategoryId = CategoryFrom(categories, "Food"), Description = "" },
+				new Product() { Name = "Chicken Pie", Price = 15M,  PhotoPath = "6.jpg", CategoryId = CategoryFrom(categories, "Food"), Description = "" },
+				new Product() { Name = "Wiley Hair Hoop - Fossil", Price = 199.99M,  PhotoPath = "7.png", CategoryId = CategoryFrom(categories, "Accessories"), Description = "" },
+				new Product() { Name = "Wiley Saddle Thing - Fossil", Price = 199.99M,  PhotoPath = "8.png", CategoryId = CategoryFrom(categories, "Accessories"), Description = "" },
+				new Product() { Name = "Relly Christmar Tree Ball", Price = 20M,  PhotoPath = "9.png", CategoryId = CategoryFrom(categories, "Accessories"), Description = "" },
+				new Product() { Name = "Expensive Reggy Rag", Price = 20M,  PhotoPath = "10.png", CategoryId = CategoryFrom(categories, "Accessories"), Description = "" },
+				new Product() { Name = "Wiley Hair Hoop - Fossil+", Price = 15M,  PhotoPath = "11.png", CategoryId = CategoryFrom(categories, "Accessories"), Description = "" },
+				new Product() { Name = "Ricky Hair Hoop", Price = 15M,  PhotoPath = "12.png", CategoryId = CategoryFrom(categories, "Accessories"), Description = "" },
 			};
 
 			context.Product.AddOrUpdate(product => product.Name, products.ToArray());

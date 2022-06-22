@@ -33,6 +33,7 @@ namespace BlackMarket_API.Data.Models
 		public virtual DbSet<Cart> Cart { get; set; }
 		public virtual DbSet<Category> Category { get; set; }
 		public virtual DbSet<Product> Product { get; set; }
+		public virtual DbSet<Slider> Slider { get; set; }
 
 		protected override void OnModelCreating(DbModelBuilder modelBuilder)
 		{

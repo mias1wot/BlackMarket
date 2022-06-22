@@ -57,29 +57,28 @@ namespace BlackMarket_API.Controllers
 
 		//page begins from 1
 		//public ProductsViewModel Get(int page, int pageSize)
-		public ProductsViewModel Get(int page, int pageSize)
+		public HomeProductsViewModel Get(int page, int pageSize)
 		{
 			var products = productRepository.GetProducts(User.Identity.GetUserId<long>(), page, pageSize, mapper);
 			return products;
-			
 		}
 
 		//Returns null if there is no such a product
-		public ProductViewModel Get(long id)
+		public OpenedProductViewModel Get(long id)
 		{
 			return productRepository.GetProduct(User.Identity.GetUserId<long>(), id, mapper);
 		}
 
-		public ProductsViewModel Get(int categoryId, int page, int pageSize)
+		public HomeProductsViewModel Get(int categoryId, int page, int pageSize)
 		{
 			return productRepository.GetByCategory(User.Identity.GetUserId<long>(), categoryId, page, pageSize, mapper);
 		}
 
-		public ProductsViewModel Get(string name, int page, int pageSize)
+		public HomeProductsViewModel Get(string name, int page, int pageSize)
 		{
 			return Get(name, 0, page, pageSize);
 		}
-		public ProductsViewModel Get(string name, int categoryId, int page, int pageSize)
+		public HomeProductsViewModel Get(string name, int categoryId, int page, int pageSize)
 		{
 			return productRepository.GetProductsByName(User.Identity.GetUserId<long>(), name, categoryId, page, pageSize, mapper);
 		}
@@ -119,7 +118,7 @@ namespace BlackMarket_API.Controllers
 		//test area: this is not implemented
 		public void Test()
 		{
-			productRepository.Test();
+			productRepository.Test(mapper);
 			//var a = new Data.ViewModels.TestProductViewModel();
 
 			//Assembly.GetExecutingAssembly().GetTypes().Where(t => t.IsDefined(typeof(ApiControllerAttribute)) && !t.IsAbstract)

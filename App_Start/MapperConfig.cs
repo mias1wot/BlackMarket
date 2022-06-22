@@ -16,11 +16,10 @@ namespace BlackMarket_API.App_Start
 			{
 				//Create all maps here
 				//cfg.CreateMap<Order, OrderDto>();
-				cfg.CreateMap<Product, ProductViewModel>();
-				//.ForMember(d => d.SoldAmount, opt =>
-				//opt.MapFrom(product =>
-				//))
-
+				cfg.CreateMap<Product, HomeProductViewModel>();
+				cfg.CreateMap<Product, OpenedProductViewModel>();
+				cfg.CreateMap<Product, CartProductViewModel>();
+				cfg.CreateMap<Category, CategoryViewModel>();
 			});
 
 			IMapper mapper = config.CreateMapper();

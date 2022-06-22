@@ -20,6 +20,7 @@ namespace BlackMarket_API
             container.RegisterType<IProductRepository, ProductRepository>();
             container.RegisterType<ICategoryRepository, CategoryRepository>();
             container.RegisterType<ICartRepository, CartRepository>();
+            container.RegisterType<ISliderRepository, SliderRepository>();
 
             container.RegisterInstance(MapperConfig.Register()) ;
 
