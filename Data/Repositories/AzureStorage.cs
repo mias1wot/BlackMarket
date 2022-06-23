@@ -1,4 +1,5 @@
 ﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -44,7 +45,7 @@ namespace BlackMarket_API.Data.Repositories
 			return photos;
 		}
 
-		public static bool UploadPhotoToAzureStorage(string containerName, string photoName, Stream newPhoto, bool changeIfExists)
+		public static bool UploadPhotoToAzureStorage(string containerName, string photoName, Stream newPhoto, bool replacePhotoIfExists)
 		{
 			BlobServiceClient blobServiceClient = new BlobServiceClient(ConfigurationManager.ConnectionStrings["StorageConnectionString"].ConnectionString);
 			BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(containerName);
@@ -52,7 +53,7 @@ namespace BlackMarket_API.Data.Repositories
 
 			try
 			{
-				blobClient.Upload(newPhoto, changeIfExists);
+				blobClient.Upload(newPhoto, replacePhotoIfExists);
 			}
 			catch
 			{
@@ -60,6 +61,16 @@ namespace BlackMarket_API.Data.Repositories
 			}
 
 			return true;
+		}
+
+		//returns true if the photo existed and was deletet; false if photo doesn't exist
+		public static bool DeletePhotoInAzureStorage(string containerName, string photoName)
+		{
+			BlobServiceClient blobServiceClient = new BlobServiceClient(ConfigurationManager.ConnectionStrings["StorageConnectionString"].ConnectionString);
+			BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+			BlobClient blobClient = containerClient.GetBlobClient(photoName);
+
+			return blobClient.DeleteIfExists(DeleteSnapshotsOption.IncludeSnapshots);
 		}
 	}
 }

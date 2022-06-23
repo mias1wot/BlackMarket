@@ -11,6 +11,9 @@ namespace BlackMarket_API.Data.Interfaces
 	public interface ISliderRepository
 	{
 		SliderViewModel GetSliders();
-		string AddSlider(string photoName, Stream newPhoto, int order = 0);
+		string AddSlider(string photoName, Stream newPhoto, int? sliderNumber = null);
+		string ChangeSlider(int sliderNumber, string newPhotoName, Stream newPhoto, int? newSliderNumber = null);
+		string DeleteSlider(int sliderNumber);
+		string ChangeSlidersOrder(List<int> sliderNumbers);
 	}
 }

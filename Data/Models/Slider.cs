@@ -10,14 +10,13 @@ namespace BlackMarket_API.Data.Models
 	[Table("Slider")]
 	public partial class Slider
 	{
+		//Returned rows are always ordered by this SliderId
 		[Key]
 		[Column(Order = 0)]
-		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-		public int SliderId { get; set; }
+		[DatabaseGenerated(DatabaseGeneratedOption.None)]
+		public int SliderNumber { get; set; }
 
-		[Index(IsUnique = true)]
-		public int Order { get; set; }
-
+		[Required]
 		[StringLength(150)]
 		public string PhotoPath { get; set; }
 	}

@@ -353,6 +353,14 @@
     <Compile Include="Migrations\202206141818253_AddColumnToProduct-PhotoPath.Designer.cs">
       <DependentUpon>202206141818253_AddColumnToProduct-PhotoPath.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202206231103102_AddSliderEntity.cs" />
+    <Compile Include="Migrations\202206231103102_AddSliderEntity.Designer.cs">
+      <DependentUpon>202206231103102_AddSliderEntity.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202206231653193_ChangeSliderEntity_AddSliderNumber_DeleteOrder.cs" />
+    <Compile Include="Migrations\202206231653193_ChangeSliderEntity_AddSliderNumber_DeleteOrder.Designer.cs">
+      <DependentUpon>202206231653193_ChangeSliderEntity_AddSliderNumber_DeleteOrder.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\ApplicationOAuthProvider.cs" />
@@ -456,6 +464,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202206141818253_AddColumnToProduct-PhotoPath.resx">
       <DependentUpon>202206141818253_AddColumnToProduct-PhotoPath.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202206231103102_AddSliderEntity.resx">
+      <DependentUpon>202206231103102_AddSliderEntity.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202206231653193_ChangeSliderEntity_AddSliderNumber_DeleteOrder.resx">
+      <DependentUpon>202206231653193_ChangeSliderEntity_AddSliderNumber_DeleteOrder.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
