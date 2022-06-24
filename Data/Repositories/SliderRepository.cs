@@ -34,10 +34,11 @@ namespace BlackMarket_API.Data.Repositories
 				return "'sliderNumber' must be greater than 0 (or be absent)";
 
 			using (BlackMarket context = new BlackMarket())
+			using (var transaction = context.Database.BeginTransaction())
 			{
 				//Gets SliderNumber of new Slider
 				int actualSliderNumber;
-				var lastSliderNumber = context.Slider.OrderByDescending(Slider => Slider.SliderNumber).FirstOrDefault()?.SliderNumber;
+				int? lastSliderNumber = context.Slider.OrderByDescending(Slider => Slider.SliderNumber).Select(Slider => (int?)Slider.SliderNumber).FirstOrDefault();
 				if (sliderNumber == null || lastSliderNumber == null || sliderNumber > lastSliderNumber)
 				{
 					//ignore user input of 'sliderNumber' and sliderNumber will be the last one available
@@ -48,12 +49,12 @@ namespace BlackMarket_API.Data.Repositories
 					actualSliderNumber = (int)sliderNumber;
 
 					//Shifts SliderNumber of all sliders
-					//OrderByDescending to change sliderNumber from the end so that there is no two identical sliderNumber in each time
-					//var changedSliders = context.Slider.Where(Slider => Slider.SliderNumber >= sliderNumber).OrderByDescending(Slider => Slider.SliderNumber).ToList();
-					var changedSliders = context.Slider.Where(Slider => Slider.SliderNumber >= sliderNumber).ToList();
-					changedSliders.ForEach(changedSlider => changedSlider.SliderNumber += 1);
-					//Saving goes later
+					context.Database.ExecuteSqlCommand(
+						$"UPDATE dbo.{nameof(Slider)} " +
+						$"SET {nameof(Slider.SliderNumber)} = {nameof(Slider.SliderNumber)} + 1 " +
+						$"WHERE SliderNumber >= {sliderNumber}");
 				}
+				//return null;
 
 				//Uploads photo to Azure Storage
 				bool success = AzureStorage.UploadPhotoToAzureStorage(_containerName, photoName, newPhoto, false);
@@ -61,11 +62,11 @@ namespace BlackMarket_API.Data.Repositories
 					return "Failed to upload photo to Azure Storage (maybe this photo is already there or this photo name is already taken)";
 
 				//Adds slider to DB
-				context.SaveChanges();
-
 				Slider slider = new Slider() { SliderNumber = actualSliderNumber, PhotoPath = photoName };
 				context.Slider.Add(slider);
 				context.SaveChanges();
+
+				transaction.Commit();
 
 				return null;
 			}
@@ -82,7 +83,7 @@ namespace BlackMarket_API.Data.Repositories
 			using(var transaction = context.Database.BeginTransaction())
 			{
 				//Gets changed slider
-				Slider changedSlider = context.Slider.Find(sliderNumber);
+				Slider changedSlider = context.Slider.SingleOrDefault(Slider => Slider.SliderNumber == sliderNumber);
 				if (changedSlider == null)
 					return $"There is no Slider with sliderNumber = {sliderNumber}";
 
@@ -90,25 +91,34 @@ namespace BlackMarket_API.Data.Repositories
 				//Shifts sliders sliderNumber accordingly to new sliderNumber
 				//User input of 'sliderNumber' is counted only if it's in available sliderNumber range
 				var lastSliderNumber = context.Slider.OrderByDescending(Slider => Slider.SliderNumber).FirstOrDefault()?.SliderNumber;
-				if (newSliderNumber != null && (lastSliderNumber == null || newSliderNumber <= lastSliderNumber))
+				var oldSliderNumber = changedSlider.SliderNumber;
+				if (newSliderNumber != null && newSliderNumber != oldSliderNumber && (lastSliderNumber == null || newSliderNumber <= lastSliderNumber))
 				{
 					//temporarily changes sliderNumber of changed slider to 0 in sliderNumber to shift other sliders
 					changedSlider.SliderNumber = 0;
 					context.SaveChanges();
 
 					//Shifts SliderNumber of all sliders between the old and new orders
-					var oldSliderNumber = changedSlider.SliderNumber;
+					char operation;//increment or decrement
+					List<int> shiftedSliderNumbers;
 					if (newSliderNumber > oldSliderNumber)
 					{
-						var shiftedSliders = context.Slider.Where(Slider => Slider.SliderNumber > oldSliderNumber && Slider.SliderNumber <= newSliderNumber).ToList();
-						shiftedSliders.ForEach(shiftedSlider => shiftedSlider.SliderNumber -= 1);
-						
+						shiftedSliderNumbers = context.Slider.Where(Slider => Slider.SliderNumber > oldSliderNumber && Slider.SliderNumber <= newSliderNumber).Select(Slider => Slider.SliderNumber).ToList();
+						operation = '-';
 					}
 					else
 					{
-						var shiftedSliders = context.Slider.Where(Slider => Slider.SliderNumber >= newSliderNumber && Slider.SliderNumber < oldSliderNumber).ToList();
-						shiftedSliders.ForEach(shiftedSlider => shiftedSlider.SliderNumber += 1);
+						shiftedSliderNumbers = context.Slider.Where(Slider => Slider.SliderNumber >= newSliderNumber && Slider.SliderNumber < oldSliderNumber).Select(Slider => Slider.SliderNumber).ToList();
+						operation = '+';
 					}
+					var shiftedSliderNumbersStr = String.Join(", ", shiftedSliderNumbers.ToArray());
+
+					//Shifts SliderNumber of all sliders between the old and new orders
+					context.Database.ExecuteSqlCommand(
+						$"UPDATE dbo.{nameof(Slider)} " +
+						$"SET {nameof(Slider.SliderNumber)} = {nameof(Slider.SliderNumber)} {operation} 1 " +
+						$"WHERE SliderNumber IN ({shiftedSliderNumbersStr})");
+
 					changedSlider.SliderNumber = (int)newSliderNumber;
 					//Saving goes later
 				}
@@ -137,33 +147,64 @@ namespace BlackMarket_API.Data.Repositories
 		public string DeleteSlider(int sliderNumber)
 		{
 			using (BlackMarket context = new BlackMarket())
+			using(var transaction = context.Database.BeginTransaction())
 			{
 				//Gets slider for deletion
-				Slider deletionSlider = context.Slider.Find(sliderNumber);
+				Slider deletionSlider = context.Slider.SingleOrDefault(Slider => Slider.SliderNumber == sliderNumber);
 				if (deletionSlider == null)
 					return $"There is no Slider with sliderNumber = {sliderNumber}";
-
-
-				//Shifts SliderNumber of all sliders going after the slider to be deleted
-				var deletedOrder = deletionSlider.SliderNumber;
-				var shiftedSliders = context.Slider.Where(Slider => Slider.SliderNumber > deletedOrder).ToList();
-				shiftedSliders.ForEach(shiftedSlider => shiftedSlider.SliderNumber -= 1);
-				//Saving goes later
-
-
-				//Deletes photo from Azure Storage
-				AzureStorage.DeletePhotoInAzureStorage(_containerName, deletionSlider.PhotoPath);
 
 
 				//Deletes slider from DB
 				context.Slider.Remove(deletionSlider);
 				context.SaveChanges();
 
+
+				//Shifts SliderNumber of all sliders going after the deleted slider
+				var deletedSliderNumber = deletionSlider.SliderNumber;
+				context.Database.ExecuteSqlCommand(
+					$"UPDATE dbo.{nameof(Slider)} " +
+					$"SET {nameof(Slider.SliderNumber)} = {nameof(Slider.SliderNumber)} - 1 " +
+					$"WHERE {nameof(Slider.SliderNumber)} > {deletedSliderNumber}");
+
+
+				//Deletes photo from Azure Storage
+				AzureStorage.DeletePhotoInAzureStorage(_containerName, deletionSlider.PhotoPath);
+
+
+				transaction.Commit();
+
 				return null;
 			}
 		}
 
-		//Changed SliderNumber of sliders accordingly to sliderNumber of slidersId in 'sliderIds'
+
+		//Deletes sliders from DB and their photos from Azure Storage
+		//returns error message or null
+		public string DeleteAllSliders()
+		{
+			using (BlackMarket context = new BlackMarket())
+			{
+				//Gets slider for deletion
+				var sliders = context.Slider.ToList();
+				
+				//Deletes all Sliders from DB
+				context.Database.ExecuteSqlCommand($"DELETE FROM dbo.{nameof(Slider)}");
+
+				//Deletes photo from Azure Storage
+				foreach(Slider slider in sliders)
+				{
+					AzureStorage.DeletePhotoInAzureStorage(_containerName, slider.PhotoPath);
+				}
+
+
+				return null;
+			}
+		}
+
+		//Changed SliderNumber of sliders accordingly to passed sliderNumbers
+		//The order of SliderNumbers is the new order of slider images
+		//For example, {3,2,1} means that the third slider becomes the first one and the first slider becomes the third one
 		//returns error message or null
 		public string ChangeSlidersOrder(List<int> sliderNumbers)
 		{
@@ -171,6 +212,7 @@ namespace BlackMarket_API.Data.Repositories
 				return "No list of sliderNumbers was given";
 
 			using (BlackMarket context = new BlackMarket())
+			using(var transaction = context.Database.BeginTransaction())
 			{
 				//Gets slider from DB
 				List<Slider> sliders = context.Slider.ToList();
@@ -179,18 +221,38 @@ namespace BlackMarket_API.Data.Repositories
 					return "Quantity of sliders in the provided list does not matche quantity of sliders in database";
 
 
+				//negatives the SliderNumber of all Sliders so that there is no two identical SliderNumbers (request of unique clustered index)
+				context.Database.ExecuteSqlCommand(
+					$"UPDATE {nameof(Slider)} " +
+					$"SET {nameof(Slider.SliderNumber)} = - {nameof(Slider.SliderNumber)}");
+
+
 				//Shifts SliderNumber of all sliders
-				int curOrder = 1;
+				//Finds the new order of sliders
+				List<Slider> slidersInNewOrder = new List<Slider>();
 				foreach (int sliderNumber in sliderNumbers)
 				{
-					Slider changedSlider = sliders.Find(slider => slider.SliderNumber == sliderNumber);
+					Slider changedSlider = sliders.SingleOrDefault(slider => slider.SliderNumber == sliderNumber);
 					if (changedSlider == null)
 						return $"Slider with sliderNumber = { sliderNumber } isn't found in the database";
 
-					changedSlider.SliderNumber = curOrder++;
+					slidersInNewOrder.Add(changedSlider);
 				}
 
+				//Put sliders into correct order
+				int curOrder = 1;
+				foreach (Slider slider in slidersInNewOrder)
+				{
+					slider.SliderNumber = curOrder++;
+
+					//This is needed because some sliders haven't changed their position but they'd changed SliderNumber to the negative one before to avoid collisions.
+					//So this will inforce to return back the correct SliderNumber
+					context.Entry(slider).State = System.Data.Entity.EntityState.Modified;
+				}
 				context.SaveChanges();
+
+
+				transaction.Commit();
 
 				return null;
 			}

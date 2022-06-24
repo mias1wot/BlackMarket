@@ -361,6 +361,14 @@
     <Compile Include="Migrations\202206231653193_ChangeSliderEntity_AddSliderNumber_DeleteOrder.Designer.cs">
       <DependentUpon>202206231653193_ChangeSliderEntity_AddSliderNumber_DeleteOrder.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\202206240525295_ChangeSliderEntity_AddSliderId_ClusteredIndexOnSliderNumber.cs" />
+    <Compile Include="Migrations\202206240525295_ChangeSliderEntity_AddSliderId_ClusteredIndexOnSliderNumber.Designer.cs">
+      <DependentUpon>202206240525295_ChangeSliderEntity_AddSliderId_ClusteredIndexOnSliderNumber.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202206241101084_ChangeProductEntity_ExpandDescriptionTo500.cs" />
+    <Compile Include="Migrations\202206241101084_ChangeProductEntity_ExpandDescriptionTo500.Designer.cs">
+      <DependentUpon>202206241101084_ChangeProductEntity_ExpandDescriptionTo500.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\ApplicationOAuthProvider.cs" />
@@ -470,6 +478,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202206231653193_ChangeSliderEntity_AddSliderNumber_DeleteOrder.resx">
       <DependentUpon>202206231653193_ChangeSliderEntity_AddSliderNumber_DeleteOrder.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202206240525295_ChangeSliderEntity_AddSliderId_ClusteredIndexOnSliderNumber.resx">
+      <DependentUpon>202206240525295_ChangeSliderEntity_AddSliderId_ClusteredIndexOnSliderNumber.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202206241101084_ChangeProductEntity_ExpandDescriptionTo500.resx">
+      <DependentUpon>202206241101084_ChangeProductEntity_ExpandDescriptionTo500.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

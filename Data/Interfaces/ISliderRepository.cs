@@ -14,6 +14,7 @@ namespace BlackMarket_API.Data.Interfaces
 		string AddSlider(string photoName, Stream newPhoto, int? sliderNumber = null);
 		string ChangeSlider(int sliderNumber, string newPhotoName, Stream newPhoto, int? newSliderNumber = null);
 		string DeleteSlider(int sliderNumber);
+		string DeleteAllSliders();
 		string ChangeSlidersOrder(List<int> sliderNumbers);
 	}
 }

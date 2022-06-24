@@ -2,6 +2,7 @@ using Microsoft.AspNet.Identity.EntityFramework;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.Entity;
+using System.Diagnostics;
 using System.Linq;
 
 //Do it before adding database migration to clear auto-created tables. They'll be recreated.
@@ -23,6 +24,7 @@ namespace BlackMarket_API.Data.Models
 			: base("name=BlackMarket")
 		{
 			Configuration.ProxyCreationEnabled = false;
+			Database.Log = x => Debug.WriteLine("\n"+x+"\n");
 		}
 
 		public static BlackMarket Create()
@@ -57,6 +59,8 @@ namespace BlackMarket_API.Data.Models
 				.HasMany(e => e.Cart)
 				.WithRequired(e => e.User)
 				.WillCascadeOnDelete(false);
+
+			//modelBuilder.Entity<Blog>().HasIndex(b => b.PublishedOn).IsClustered();
 		}
 	}
 }

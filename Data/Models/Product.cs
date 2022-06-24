@@ -33,7 +33,7 @@ namespace BlackMarket_API.Data.Models
         public int CategoryId { get; set; }
 
         [Required(AllowEmptyStrings = true)]
-        [StringLength(250)]
+        [StringLength(500)]
         public string Description { get; set; }
 
         [StringLength(3000)]
