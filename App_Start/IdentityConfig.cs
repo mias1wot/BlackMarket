@@ -30,10 +30,10 @@ namespace BlackMarket_API
             {
                 RequiredLength = 6,
 				//RequireNonLetterOrDigit = true,
-				//RequireDigit = true,
+				RequireDigit = true,
 				RequireLowercase = true,
-                //RequireUppercase = true,
-            };
+				RequireUppercase = true,
+			};
             var dataProtectionProvider = options.DataProtectionProvider;
             if (dataProtectionProvider != null)
             {

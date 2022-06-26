@@ -29,35 +29,49 @@ namespace BlackMarket_API.Providers
 
         public override async Task GrantResourceOwnerCredentials(OAuthGrantResourceOwnerCredentialsContext context)
         {
-            var userManager = context.OwinContext.GetUserManager<UserManager>();
+			var userManager = context.OwinContext.GetUserManager<UserManager>();
 
-            User user = await userManager.FindAsync(context.UserName, context.Password);
+			User user = await userManager.FindAsync(context.UserName, context.Password);
 
-            if (user == null)
-            {
-                context.SetError("invalid_grant", "The user name or password is incorrect.");
-                return;
-            }
+			if (user == null)
+			{
+				context.SetError("invalid_grant", "The user name or password is incorrect.");
+				return;
+			}
 
-            ClaimsIdentity oAuthIdentity = await user.GenerateUserIdentityAsync(userManager,
-               OAuthDefaults.AuthenticationType);
-            ClaimsIdentity cookiesIdentity = await user.GenerateUserIdentityAsync(userManager,
-                CookieAuthenticationDefaults.AuthenticationType);
+			ClaimsIdentity oAuthIdentity = await user.GenerateUserIdentityAsync(userManager,
+			   Startup.OAuthOptions.AuthenticationType);
+			ClaimsIdentity cookiesIdentity = await user.GenerateUserIdentityAsync(userManager,
+						 CookieAuthenticationDefaults.AuthenticationType);
 
-            AuthenticationProperties properties = CreateProperties(user.UserName);
-            AuthenticationTicket ticket = new AuthenticationTicket(oAuthIdentity, properties);
-            context.Validated(ticket);
-            context.Request.Context.Authentication.SignIn(cookiesIdentity);
-        }
+			AuthenticationProperties properties = CreateProperties(user.UserName);
+			AuthenticationTicket ticket = new AuthenticationTicket(oAuthIdentity, properties);
+			context.Validated(ticket);
+			context.Request.Context.Authentication.SignIn(cookiesIdentity);
+		}
 
-        public override Task TokenEndpoint(OAuthTokenEndpointContext context)
+		public override Task GrantRefreshToken(OAuthGrantRefreshTokenContext context)
+		{
+			//Generate new access and refresh token
+			var newIdentity = new ClaimsIdentity(context.Ticket.Identity);
+
+            //newIdentity.IsAuthenticated = true;
+            //newIdentity.Name = "user1@gmail.com";
+
+			var newTicket = new AuthenticationTicket(newIdentity, context.Ticket.Properties);
+			context.Validated(newTicket);
+
+			return Task.FromResult<object>(null);
+		}
+
+		public override Task TokenEndpoint(OAuthTokenEndpointContext context)
         {
-            foreach (KeyValuePair<string, string> property in context.Properties.Dictionary)
-            {
-                context.AdditionalResponseParameters.Add(property.Key, property.Value);
-            }
+			foreach (KeyValuePair<string, string> property in context.Properties.Dictionary)
+			{
+				context.AdditionalResponseParameters.Add(property.Key, property.Value);
+			}
 
-            return Task.FromResult<object>(null);
+			return Task.FromResult<object>(null);
         }
 
         public override Task ValidateClientAuthentication(OAuthValidateClientAuthenticationContext context)

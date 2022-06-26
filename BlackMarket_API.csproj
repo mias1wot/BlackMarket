@@ -318,27 +318,27 @@
     <Compile Include="Controllers\ProductsController.cs" />
     <Compile Include="Controllers\SliderController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
-    <Compile Include="Data\Interfaces\ICartRepository.cs" />
-    <Compile Include="Data\Interfaces\ICategoryRepository.cs" />
-    <Compile Include="Data\Interfaces\IProductRepository.cs" />
-    <Compile Include="Data\Interfaces\ISliderRepository.cs" />
+    <Compile Include="Data\Services\Interfaces\ICartRepository.cs" />
+    <Compile Include="Data\Services\Interfaces\ICategoryRepository.cs" />
+    <Compile Include="Data\Services\Interfaces\IProductRepository.cs" />
+    <Compile Include="Data\Services\Interfaces\ISliderRepository.cs" />
     <Compile Include="Data\Models\BlackMarket.cs" />
     <Compile Include="Data\Models\Cart.cs" />
     <Compile Include="Data\Models\Category.cs" />
     <Compile Include="Data\Models\Product.cs" />
     <Compile Include="Data\Models\Slider.cs" />
     <Compile Include="Data\Models\User.cs" />
-    <Compile Include="Data\Repositories\AzureStorage.cs" />
-    <Compile Include="Data\Repositories\CartRepository.cs" />
-    <Compile Include="Data\Repositories\CategoryRepository.cs" />
-    <Compile Include="Data\Repositories\ProductRepository.cs" />
-    <Compile Include="Data\Repositories\SliderRepository.cs" />
+    <Compile Include="Data\Services\Repositories\AzureStorage.cs" />
+    <Compile Include="Data\Services\Repositories\CartRepository.cs" />
+    <Compile Include="Data\Services\Repositories\CategoryRepository.cs" />
+    <Compile Include="Data\Services\Repositories\ProductRepository.cs" />
+    <Compile Include="Data\Services\Repositories\SliderRepository.cs" />
     <Compile Include="Data\ViewModels\CategoryViewModel.cs" />
     <Compile Include="Data\ViewModels\ProductViewModels.cs" />
     <Compile Include="Data\ViewModels\SliderViewModels.cs" />
     <Compile Include="EnhancedAutomapperNS\EnhancedAutomapper.cs" />
     <Compile Include="EnhancedAutomapperNS\QueryableExtensions.cs" />
-    <Compile Include="ExtensionMethods\ListExtension.cs" />
+    <Compile Include="EnhancedAutomapperNS\ExtensionMethods\ListExtension.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -372,7 +372,8 @@
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\ApplicationOAuthProvider.cs" />
-    <Compile Include="Attributes\EnhancedAutomapperAttributes.cs" />
+    <Compile Include="EnhancedAutomapperNS\Attributes\EnhancedAutomapperAttributes.cs" />
+    <Compile Include="Providers\SimpleRefreshTokenProvider.cs" />
     <Compile Include="Results\ChallengeResult.cs" />
     <Compile Include="Startup.cs" />
   </ItemGroup>

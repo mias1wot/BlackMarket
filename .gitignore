@@ -1,5 +1,16 @@
+#Database files
 *.mdf
 *.ldf
+
+#Azure deployment files
+*.pubxml
+*.pubxml.user
+*/profile.arm.json
+
+#images
+*.png
+*.jpg
+*.webp
 
 ###################
 # compiled source #

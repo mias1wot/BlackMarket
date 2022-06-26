@@ -10,6 +10,7 @@ using Microsoft.Owin.Security.OAuth;
 using Owin;
 using BlackMarket_API.Providers;
 using BlackMarket_API.Data.Models;
+using System.Configuration;
 
 namespace BlackMarket_API
 {
@@ -31,6 +32,8 @@ namespace BlackMarket_API
             app.UseCookieAuthentication(new CookieAuthenticationOptions());
             app.UseExternalSignInCookie(DefaultAuthenticationTypes.ExternalCookie);
 
+            double accessTokenExpireInMinutes = Double.Parse(ConfigurationManager.AppSettings["AccessTokenExpireInMinutes"]);
+
             // Configure the application for OAuth based flow
             PublicClientId = "self";
             OAuthOptions = new OAuthAuthorizationServerOptions
@@ -38,9 +41,10 @@ namespace BlackMarket_API
                 TokenEndpointPath = new PathString("/Token"),
                 Provider = new ApplicationOAuthProvider(PublicClientId),
                 AuthorizeEndpointPath = new PathString("/api/Account/ExternalLogin"),
-                AccessTokenExpireTimeSpan = TimeSpan.FromDays(14),
+                AccessTokenExpireTimeSpan = TimeSpan.FromMinutes(accessTokenExpireInMinutes),
                 // In production mode set AllowInsecureHttp = false
-                AllowInsecureHttp = true
+                AllowInsecureHttp = true,
+                //RefreshTokenProvider = new SimpleRefreshTokenProvider()
             };
 
             // Enable the application to use bearer tokens to authenticate users
