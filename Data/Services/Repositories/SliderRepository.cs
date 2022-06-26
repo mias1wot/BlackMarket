@@ -1,5 +1,5 @@
-﻿using BlackMarket_API.Data.Interfaces;
-using BlackMarket_API.Data.Models;
+﻿using BlackMarket_API.Data.Models;
+using BlackMarket_API.Data.Services.Interfaces;
 using BlackMarket_API.Data.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Web;
 
-namespace BlackMarket_API.Data.Repositories
+namespace BlackMarket_API.Data.Services.Repositories
 {
 	public class SliderRepository : ISliderRepository
 	{
@@ -80,7 +80,7 @@ namespace BlackMarket_API.Data.Repositories
 				return "'newSliderNumber' cannot be less than 0";
 
 			using (BlackMarket context = new BlackMarket())
-			using(var transaction = context.Database.BeginTransaction())
+			using (var transaction = context.Database.BeginTransaction())
 			{
 				//Gets changed slider
 				Slider changedSlider = context.Slider.SingleOrDefault(Slider => Slider.SliderNumber == sliderNumber);
@@ -111,7 +111,7 @@ namespace BlackMarket_API.Data.Repositories
 						shiftedSliderNumbers = context.Slider.Where(Slider => Slider.SliderNumber >= newSliderNumber && Slider.SliderNumber < oldSliderNumber).Select(Slider => Slider.SliderNumber).ToList();
 						operation = '+';
 					}
-					var shiftedSliderNumbersStr = String.Join(", ", shiftedSliderNumbers.ToArray());
+					var shiftedSliderNumbersStr = string.Join(", ", shiftedSliderNumbers.ToArray());
 
 					//Shifts SliderNumber of all sliders between the old and new orders
 					context.Database.ExecuteSqlCommand(
@@ -143,64 +143,6 @@ namespace BlackMarket_API.Data.Repositories
 			}
 		}
 
-		//returns error message or null
-		public string DeleteSlider(int sliderNumber)
-		{
-			using (BlackMarket context = new BlackMarket())
-			using(var transaction = context.Database.BeginTransaction())
-			{
-				//Gets slider for deletion
-				Slider deletionSlider = context.Slider.SingleOrDefault(Slider => Slider.SliderNumber == sliderNumber);
-				if (deletionSlider == null)
-					return $"There is no Slider with sliderNumber = {sliderNumber}";
-
-
-				//Deletes slider from DB
-				context.Slider.Remove(deletionSlider);
-				context.SaveChanges();
-
-
-				//Shifts SliderNumber of all sliders going after the deleted slider
-				var deletedSliderNumber = deletionSlider.SliderNumber;
-				context.Database.ExecuteSqlCommand(
-					$"UPDATE dbo.{nameof(Slider)} " +
-					$"SET {nameof(Slider.SliderNumber)} = {nameof(Slider.SliderNumber)} - 1 " +
-					$"WHERE {nameof(Slider.SliderNumber)} > {deletedSliderNumber}");
-
-
-				//Deletes photo from Azure Storage
-				AzureStorage.DeletePhotoInAzureStorage(_containerName, deletionSlider.PhotoPath);
-
-
-				transaction.Commit();
-
-				return null;
-			}
-		}
-
-
-		//Deletes sliders from DB and their photos from Azure Storage
-		//returns error message or null
-		public string DeleteAllSliders()
-		{
-			using (BlackMarket context = new BlackMarket())
-			{
-				//Gets slider for deletion
-				var sliders = context.Slider.ToList();
-				
-				//Deletes all Sliders from DB
-				context.Database.ExecuteSqlCommand($"DELETE FROM dbo.{nameof(Slider)}");
-
-				//Deletes photo from Azure Storage
-				foreach(Slider slider in sliders)
-				{
-					AzureStorage.DeletePhotoInAzureStorage(_containerName, slider.PhotoPath);
-				}
-
-
-				return null;
-			}
-		}
 
 		//Changed SliderNumber of sliders accordingly to passed sliderNumbers
 		//The order of SliderNumbers is the new order of slider images
@@ -212,7 +154,7 @@ namespace BlackMarket_API.Data.Repositories
 				return "No list of sliderNumbers was given";
 
 			using (BlackMarket context = new BlackMarket())
-			using(var transaction = context.Database.BeginTransaction())
+			using (var transaction = context.Database.BeginTransaction())
 			{
 				//Gets slider from DB
 				List<Slider> sliders = context.Slider.ToList();
@@ -253,6 +195,66 @@ namespace BlackMarket_API.Data.Repositories
 
 
 				transaction.Commit();
+
+				return null;
+			}
+		}
+
+
+		//returns error message or null
+		public string DeleteSlider(int sliderNumber)
+		{
+			using (BlackMarket context = new BlackMarket())
+			using (var transaction = context.Database.BeginTransaction())
+			{
+				//Gets slider for deletion
+				Slider deletionSlider = context.Slider.SingleOrDefault(Slider => Slider.SliderNumber == sliderNumber);
+				if (deletionSlider == null)
+					return $"There is no Slider with sliderNumber = {sliderNumber}";
+
+
+				//Deletes slider from DB
+				context.Slider.Remove(deletionSlider);
+				context.SaveChanges();
+
+
+				//Shifts SliderNumber of all sliders going after the deleted slider
+				var deletedSliderNumber = deletionSlider.SliderNumber;
+				context.Database.ExecuteSqlCommand(
+					$"UPDATE dbo.{nameof(Slider)} " +
+					$"SET {nameof(Slider.SliderNumber)} = {nameof(Slider.SliderNumber)} - 1 " +
+					$"WHERE {nameof(Slider.SliderNumber)} > {deletedSliderNumber}");
+
+
+				//Deletes photo from Azure Storage
+				AzureStorage.DeletePhotoInAzureStorage(_containerName, deletionSlider.PhotoPath);
+
+
+				transaction.Commit();
+
+				return null;
+			}
+		}
+
+
+		//Deletes sliders from DB and their photos from Azure Storage
+		//returns error message or null
+		public string DeleteAllSliders()
+		{
+			using (BlackMarket context = new BlackMarket())
+			{
+				//Gets slider for deletion
+				var sliders = context.Slider.ToList();
+
+				//Deletes all Sliders from DB
+				context.Database.ExecuteSqlCommand($"DELETE FROM dbo.{nameof(Slider)}");
+
+				//Deletes photo from Azure Storage
+				foreach (Slider slider in sliders)
+				{
+					AzureStorage.DeletePhotoInAzureStorage(_containerName, slider.PhotoPath);
+				}
+
 
 				return null;
 			}

@@ -1,13 +1,13 @@
 using BlackMarket_API.App_Start;
-using BlackMarket_API.Data.Interfaces;
-using BlackMarket_API.Data.Repositories;
+using BlackMarket_API.Data.Services.Interfaces;
+using BlackMarket_API.Data.Services.Repositories;
 using System.Web.Http;
 using Unity;
 using Unity.WebApi;
 
 namespace BlackMarket_API
 {
-    public static class UnityConfig
+	public static class UnityConfig
     {
         public static void RegisterComponents()
         {

@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Azure.Storage.Blobs;
-using BlackMarket_API.Data.Interfaces;
 using BlackMarket_API.Data.Models;
+using BlackMarket_API.Data.Services.Interfaces;
 using BlackMarket_API.Data.ViewModels;
 using BlackMarket_API.EnhancedAutomapperNS;
 using BlackMarket_API.ExtensionMethods;
@@ -24,11 +24,11 @@ using System.Web;
 //res.AsParallel().ForAll(productVM => productVM.Photo = GetProductPhotoFromAzureStorage(productVM.Product.PhotoPath));
 
 
-namespace BlackMarket_API.Data.Repositories
+namespace BlackMarket_API.Data.Services.Repositories
 {
 	//Warning: here we have LINQ Skip method which takes *int* as a parameter. Your Product has long id. 
 	//If product amount exceeds int.MaxValue, you need to implement and use BigSkip (just Skip in cycle).
-	public class ProductRepository: IProductRepository
+	public class ProductRepository : IProductRepository
 	{
 		private const string _containerName = "products";
 
@@ -135,9 +135,9 @@ namespace BlackMarket_API.Data.Repositories
 
 				return res.Select(productAndOther =>
 					(
-						Product: productAndOther.Product,
-						SoldAmount: productAndOther.SoldAmount,
-						InCart: productAndOther.InCart
+						productAndOther.Product,
+						productAndOther.SoldAmount,
+						productAndOther.InCart
 					)).ToList();
 			}
 		}
@@ -192,7 +192,7 @@ namespace BlackMarket_API.Data.Repositories
 
 		public OpenedProductViewModel GetProduct(long userId, long id, IMapper mapper)
 		{
-			using(BlackMarket context = new BlackMarket())
+			using (BlackMarket context = new BlackMarket())
 			{
 				//Gets data from DB
 				var extendedProduct = context.Product
@@ -211,9 +211,9 @@ namespace BlackMarket_API.Data.Repositories
 						category => category.CategoryId,
 						(productAndOther, category) => new
 						{
-							Product = productAndOther.Product,
-							SoldAmount = productAndOther.SoldAmount,
-							InCart = productAndOther.InCart,
+							productAndOther.Product,
+							productAndOther.SoldAmount,
+							productAndOther.InCart,
 							CategoryName = category.Name
 						})
 					.FirstOrDefault();
@@ -260,7 +260,7 @@ namespace BlackMarket_API.Data.Repositories
 			List<(Product Product, int SoldAmount, bool InCart)> res =
 				GenericGetProductsFromDb(
 					userId: userId,
-					categoryId: (categoryId != 0 ? (int?)categoryId : null),
+					categoryId: categoryId != 0 ? (int?)categoryId : null,
 					productName: name,
 					page, pageSize, mapper);
 
@@ -268,28 +268,86 @@ namespace BlackMarket_API.Data.Repositories
 			return GenericGetHomeProductsViewModel(res, mapper);
 		}
 
-		public void AddProduct(string name, decimal price, string photo, int categoryId, string description, string extraDescription)
-		{
-			//using (BlackMarket context = new BlackMarket())
-			//{
-			//	Product product = new Product() 
-			//	{ 
-			//		Name = name, 
-			//		Price = price, 
-			//		PhotoPath = jkfdjf, 
-			//		CategoryId = categoryId, 
-			//		Description = description, 
-			//		ExtraDescription = extraDescription
-			//	};
 
-			//	context.Product.Add(product);
-			//	context.SaveChangesAsync();
-			//}
+		//returns either error message or null
+		public string AddProduct(string name, decimal price, Stream photo, string photoExtension, int categoryId, string description, string extraDescription)
+		{
+			//description and extraDescription has limitation on string size in DB
+
+
+			using (BlackMarket context = new BlackMarket())
+			using(var transaction = context.Database.BeginTransaction())
+			{
+				Product product = new Product()
+				{
+					Name = name,
+					Price = price,
+					//PhotoPath - below
+					CategoryId = categoryId,
+					Description = description,
+					ExtraDescription = extraDescription,
+				};
+
+				context.Product.Add(product);
+				context.SaveChanges();
+
+				string photoName = product.ProductId.ToString() + photoExtension;
+
+
+				bool azureUploadRes = AzureStorage.UploadPhotoToAzureStorage(_containerName, photoName, photo, false);
+				if (!azureUploadRes)
+					return "Failed to load photo to Azure Storage";
+				//There is already a photo in Azure storage with such a name
+
+				product.PhotoPath = photoName;
+				context.SaveChanges();
+
+				transaction.Commit();
+
+				return null;
+			}
 		}
 
-		public bool ChangeProductPhoto(int productId, string photoExtension, Stream newPhoto)
+		//returns either error message or null
+		public string ChangeProduct(long productId, string name, decimal? price, Stream newPhoto, string photoExtension, int? categoryId, string description, string extraDescription)
 		{
-			using(BlackMarket context = new BlackMarket())
+			using (BlackMarket context = new BlackMarket())
+			{
+				Product product = context.Product.Find(productId);
+
+				//Change the object if appropriate component was passed
+				if (!string.IsNullOrWhiteSpace(name))
+					product.Name = name;
+				if (price != null)
+					product.Price = (decimal)price;
+				if (categoryId != null)
+					product.CategoryId = (int)categoryId;
+				if (!string.IsNullOrWhiteSpace(description))
+					product.Description = description;
+				if (!string.IsNullOrWhiteSpace(extraDescription))
+					product.ExtraDescription = extraDescription;
+
+				if(newPhoto != null && !string.IsNullOrWhiteSpace(photoExtension))
+				{
+					string newPhotoName = product.PhotoPath + photoExtension;
+					AzureStorage.DeletePhotoInAzureStorage(_containerName, product.PhotoPath);
+					bool azureUploadRes = AzureStorage.UploadPhotoToAzureStorage(_containerName, newPhotoName, newPhoto, false);
+					if (!azureUploadRes)
+						return "Failed to upload new photo to Azure Storage";
+
+					product.PhotoPath = newPhotoName;
+				}
+
+				context.SaveChanges();
+
+				return null;
+			}
+		}
+
+
+		public bool ChangeProductPhoto(long productId, string photoExtension, Stream newPhoto)
+		{
+			using (BlackMarket context = new BlackMarket())
 			{
 				var product = context.Product.Find(productId);
 
@@ -298,13 +356,29 @@ namespace BlackMarket_API.Data.Repositories
 
 				//if PhotoPath was smth else than ProductId + extension
 				string fileName = product.ProductId.ToString() + photoExtension;
-				if(product.PhotoPath != fileName)
+				if (product.PhotoPath != fileName)
 				{
 					product.PhotoPath = fileName;
 					context.SaveChanges();
 				}
-				
+
 				return AzureStorage.UploadPhotoToAzureStorage(_containerName, product.PhotoPath, newPhoto, true);
+			}
+		}
+
+
+		//returns either error message or null
+		public string DeleteProduct(long productId)
+		{
+			using (BlackMarket context = new BlackMarket())
+			{
+				Product product = context.Product.Find(productId);
+				if (product == null)
+					return $"No product with ProductId = {productId} was found";
+
+				context.Product.Remove(product);
+				context.SaveChanges();
+				return null;
 			}
 		}
 	}

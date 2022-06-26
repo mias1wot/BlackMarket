@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using BlackMarket_API.Data.Interfaces;
 using BlackMarket_API.Data.Models;
+using BlackMarket_API.Data.Services.Interfaces;
 using BlackMarket_API.Data.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -13,8 +13,8 @@ using System.Web.Http;
 
 namespace BlackMarket_API.Controllers
 {
-    //[Authorize]
-    public class CategoriesController : ApiController
+	//[Authorize]
+	public class CategoriesController : ApiController
     {
         readonly ICategoryRepository categoryRepository;
         readonly IMapper mapper;

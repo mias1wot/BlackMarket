@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using BlackMarket_API.Data.Interfaces;
+using BlackMarket_API.Data.Services.Interfaces;
 using BlackMarket_API.Data.ViewModels;
 using Microsoft.AspNet.Identity;
 using System;

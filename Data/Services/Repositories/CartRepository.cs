@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using BlackMarket_API.Data.Interfaces;
 using BlackMarket_API.Data.Models;
+using BlackMarket_API.Data.Services.Interfaces;
 using BlackMarket_API.Data.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Web;
 
-namespace BlackMarket_API.Data.Repositories
+namespace BlackMarket_API.Data.Services.Repositories
 {
 	public class CartRepository : ICartRepository
 	{
@@ -28,17 +28,17 @@ namespace BlackMarket_API.Data.Repositories
 					.Join(context.Product,
 					cart => cart.ProductId,
 					product => product.ProductId,
-					(cart, product) => new { Product = product, Amount = cart.Amount })
+					(cart, product) => new { Product = product, cart.Amount })
 					.ToList();
 
 				//Gets ViewModels of cart products
-				var cartProductVMList = cartProducts.Select(cartProduct => 
+				var cartProductVMList = cartProducts.Select(cartProduct =>
 				{
 					CartProductViewModel cartProductVM = mapper.Map<CartProductViewModel>(cartProduct.Product);
 					cartProductVM.Amount = cartProduct.Amount;
 					return cartProductVM;
 				}).ToList();
-				
+
 				//Gets photos from Azure
 				var photos = AzureStorage.GetPhotosFromAzureStorage(_productsContainerName, cartProducts.Select(cartProduct => cartProduct.Product.PhotoPath).ToList());
 				var photoIterator = photos.GetEnumerator();
@@ -88,12 +88,12 @@ namespace BlackMarket_API.Data.Repositories
 			using (BlackMarket context = new BlackMarket())
 			{
 				ChangeProductAmountViewModel changeProductAmountVM = new ChangeProductAmountViewModel() { ProductId = productId };
-				
+
 				Cart modifiedCart = context.Cart.Where(cart => cart.UserId == userId && cart.ProductId == productId).FirstOrDefault();
 				if (modifiedCart == null)
 					return null;
 
-				if(modifiedCart.Amount + changeAmountOn > 0)
+				if (modifiedCart.Amount + changeAmountOn > 0)
 				{
 					modifiedCart.Amount += changeAmountOn;
 					context.SaveChanges();
@@ -115,6 +115,21 @@ namespace BlackMarket_API.Data.Repositories
 
 
 				return changeProductAmountVM;
+			}
+		}
+
+		//returns either error message or null
+		public string DeleteProduct(long userId, long productId)
+		{
+			using (BlackMarket context = new BlackMarket())
+			{
+				Cart cart = context.Cart.Find(userId, productId);
+				if (cart == null)
+					return $"No product in cart with ProductId = {productId} which belongs to user with UserId = {userId} was found";
+
+				context.Cart.Remove(cart);
+				context.SaveChanges();
+				return null;
 			}
 		}
 	}

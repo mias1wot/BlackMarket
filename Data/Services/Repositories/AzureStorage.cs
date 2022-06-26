@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Web;
 
-namespace BlackMarket_API.Data.Repositories
+namespace BlackMarket_API.Data.Services.Repositories
 {
 	public static class AzureStorage
 	{

@@ -8,12 +8,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BlackMarket_API.Data.Interfaces
+namespace BlackMarket_API.Data.Services.Interfaces
 {
 	public interface ICategoryRepository
 	{
 		CategoriesViewModel GetCategories(IMapper mapper);
+		string AddCategory(string name, string description, string photoExtension, Stream photo);
 		bool ChangeCategoryPhoto(int categoryId, string photoExtension, Stream newPhoto);
-		void AddCategory();
+		string ChangeCategory(int categoryId, string name, string description, string photoExtension, Stream newPhoto);
+		string DeleteCategory(int categoryId);
 	}
 }

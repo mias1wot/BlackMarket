@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BlackMarket_API.Data.Interfaces
+namespace BlackMarket_API.Data.Services.Interfaces
 {
 	public interface IProductRepository
 	{
@@ -16,8 +16,12 @@ namespace BlackMarket_API.Data.Interfaces
 		OpenedProductViewModel GetProduct(long userId, long id, IMapper mapper);
 		HomeProductsViewModel GetByCategory(long userId, int categoryId, int page, int pageSize, IMapper mapper);
 		HomeProductsViewModel GetProductsByName(long userId, string name, int categoryId, int page, int pageSize, IMapper mapper);
-		void AddProduct(string Name, decimal price, string photo, int categoryId, string description, string extraDescription);
-		bool ChangeProductPhoto(int productId, string photoExtension, Stream newPhoto);
+		string AddProduct(string Name, decimal price, Stream photo, string photoExtension, int categoryId, string description, string extraDescription);
+		string ChangeProduct(long productId, string name, decimal? price, Stream newPhoto, string photoExtension, int? categoryId, string description, string extraDescription);
+		bool ChangeProductPhoto(long productId, string photoExtension, Stream newPhoto);
+		string DeleteProduct(long productId);
+
+
 		void Test(IMapper mapper);
 	}
 }

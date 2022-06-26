@@ -1,4 +1,4 @@
-﻿using BlackMarket_API.Data.Interfaces;
+﻿using BlackMarket_API.Data.Services.Interfaces;
 using BlackMarket_API.Data.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -11,8 +11,8 @@ using System.Web.Http;
 
 namespace BlackMarket_API.Controllers
 {
-    //[Authorize]
-    public class SliderController : ApiController
+	//[Authorize]
+	public class SliderController : ApiController
     {
         readonly ISliderRepository sliderRepository;
 
