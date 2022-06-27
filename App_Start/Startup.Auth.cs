@@ -44,8 +44,8 @@ namespace BlackMarket_API
                 AccessTokenExpireTimeSpan = TimeSpan.FromMinutes(accessTokenExpireInMinutes),
                 // In production mode set AllowInsecureHttp = false
                 AllowInsecureHttp = true,
-                //RefreshTokenProvider = new SimpleRefreshTokenProvider()
-            };
+				RefreshTokenProvider = new SimpleRefreshTokenProvider()
+			};
 
             // Enable the application to use bearer tokens to authenticate users
             app.UseOAuthBearerTokens(OAuthOptions);

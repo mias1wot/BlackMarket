@@ -37,6 +37,9 @@ namespace BlackMarket_API.Data.Models
 		public virtual DbSet<Product> Product { get; set; }
 		public virtual DbSet<Slider> Slider { get; set; }
 
+		public virtual DbSet<Client> Client { get; set; }
+		public virtual DbSet<RefreshToken> RefreshToken { get; set; }
+
 		protected override void OnModelCreating(DbModelBuilder modelBuilder)
 		{
 			base.OnModelCreating(modelBuilder);

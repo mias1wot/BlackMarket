@@ -1,4 +1,6 @@
-﻿using Microsoft.Owin.Security;
+﻿using BlackMarket_API.Data.Models;
+using BlackMarket_API.Data.Services.Repositories;
+using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Infrastructure;
 using System;
 using System.Collections.Concurrent;
@@ -18,44 +20,48 @@ namespace BlackMarket_API.Providers
         public void Receive(AuthenticationTokenReceiveContext context) => throw new NotImplementedException();
         public async Task CreateAsync(AuthenticationTokenCreateContext context)
         {
+            string clientId = context.Ticket.Properties.Dictionary["ClientId"];
+            if (string.IsNullOrWhiteSpace(clientId))
+            {
+                return;
+            }
 
-            //Try this
-            //using System.Security.Cryptography;
-            //var randomNumber = new byte[32];
-            //using (var rng = RandomNumberGenerator.Create())
-            //{
-            //    rng.GetBytes(randomNumber);
-            //    return Convert.ToBase64String(randomNumber);
-            //}
+            double refreshTokenExpireInMinutes = Convert.ToDouble(context.OwinContext.Get<string>("as:clientRefreshTokenLifeTimeInMinutes"));
+            
 
+            context.Ticket.Properties.IssuedUtc = DateTime.UtcNow;
+            context.Ticket.Properties.ExpiresUtc = DateTime.UtcNow.AddMinutes(refreshTokenExpireInMinutes);
 
-            double refreshTokenExpireInMinutes = Double.Parse(ConfigurationManager.AppSettings["RefreshTokenExpireInMinutes"]);
-
-            var guid = Guid.NewGuid().ToString();
-			/* Copy claims from previous token
-			 ***********************************/
-			var refreshTokenProperties = new AuthenticationProperties(context.Ticket.Properties.Dictionary)
+            //Save Ticket to DB
+            using (RefreshTokenRepository refreshTokenRepo = new RefreshTokenRepository())
 			{
-				IssuedUtc = context.Ticket.Properties.IssuedUtc,
-				ExpiresUtc = DateTime.UtcNow.AddMinutes(refreshTokenExpireInMinutes)
-			};
-            var i = context.Ticket.Identity;
+                var refreshTokenId = Guid.NewGuid().ToString();
+                long userId = Convert.ToInt64(context.Ticket.Properties.Dictionary["UserId"]);
+                string ticket = context.SerializeTicket();
 
-            var refreshTokenTicket = await Task.Run(() => new AuthenticationTicket(context.Ticket.Identity, refreshTokenProperties));
-
-			_refreshTokens.TryAdd(guid, refreshTokenTicket);
-
-			context.SetToken(guid);
+                bool addRefreshTokenRes = await refreshTokenRepo.AddRefreshToken(refreshTokenId, userId, clientId, ticket);
+                if(addRefreshTokenRes)
+                    context.SetToken(refreshTokenId);
+            }
 		}
 
         public async Task ReceiveAsync(AuthenticationTokenReceiveContext context)
         {
-            AuthenticationTicket ticket;
-            if (_refreshTokens.TryRemove(context.Token, out ticket))
+            var allowedOrigin = context.OwinContext.Get<string>("as:clientAllowedOrigin");
+            context.OwinContext.Response.Headers.Add("Access-Control-Allow-Origin", new[] { allowedOrigin });
+
+            string refreshTokenId = context.Token;
+
+            using (RefreshTokenRepository DBcontext = new RefreshTokenRepository())
             {
-				context.SetTicket(ticket);
-				//context.SetTicket(new AuthenticationTicket(new System.Security.Claims.ClaimsIdentity(), ticket.Properties));
-			}
+                RefreshToken refreshToken = await DBcontext.GetRefreshToken(refreshTokenId);
+
+                if (refreshToken != null)
+                {
+                    context.DeserializeTicket(refreshToken.Ticket);
+                    await DBcontext.RemoveRefreshToken(refreshToken);
+                }
+            }
         }
     }
 }

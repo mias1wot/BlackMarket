@@ -318,9 +318,13 @@
     <Compile Include="Controllers\ProductsController.cs" />
     <Compile Include="Controllers\SliderController.cs" />
     <Compile Include="Controllers\ValuesController.cs" />
+    <Compile Include="Data\Models\Client.cs" />
+    <Compile Include="Data\Models\RefreshToken.cs" />
     <Compile Include="Data\Services\Interfaces\ICartRepository.cs" />
     <Compile Include="Data\Services\Interfaces\ICategoryRepository.cs" />
+    <Compile Include="Data\Services\Interfaces\IClientRepository.cs" />
     <Compile Include="Data\Services\Interfaces\IProductRepository.cs" />
+    <Compile Include="Data\Services\Interfaces\IRefreshTokenRepository.cs" />
     <Compile Include="Data\Services\Interfaces\ISliderRepository.cs" />
     <Compile Include="Data\Models\BlackMarket.cs" />
     <Compile Include="Data\Models\Cart.cs" />
@@ -331,7 +335,9 @@
     <Compile Include="Data\Services\Repositories\AzureStorage.cs" />
     <Compile Include="Data\Services\Repositories\CartRepository.cs" />
     <Compile Include="Data\Services\Repositories\CategoryRepository.cs" />
+    <Compile Include="Data\Services\Repositories\ClientRepository.cs" />
     <Compile Include="Data\Services\Repositories\ProductRepository.cs" />
+    <Compile Include="Data\Services\Repositories\RefreshTokenRepository.cs" />
     <Compile Include="Data\Services\Repositories\SliderRepository.cs" />
     <Compile Include="Data\ViewModels\CategoryViewModel.cs" />
     <Compile Include="Data\ViewModels\ProductViewModels.cs" />
@@ -345,6 +351,7 @@
     <Compile Include="Data\BindingModels\AccountBindingModels.cs" />
     <Compile Include="Data\ViewModels\AccountViewModels.cs" />
     <Compile Include="Data\Models\IdentityModels.cs" />
+    <Compile Include="Helper.cs" />
     <Compile Include="Migrations\202206130941292_initialDB.cs" />
     <Compile Include="Migrations\202206130941292_initialDB.Designer.cs">
       <DependentUpon>202206130941292_initialDB.cs</DependentUpon>
@@ -368,6 +375,18 @@
     <Compile Include="Migrations\202206241101084_ChangeProductEntity_ExpandDescriptionTo500.cs" />
     <Compile Include="Migrations\202206241101084_ChangeProductEntity_ExpandDescriptionTo500.Designer.cs">
       <DependentUpon>202206241101084_ChangeProductEntity_ExpandDescriptionTo500.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202206271753497_AddRefreshTokenEntity.cs" />
+    <Compile Include="Migrations\202206271753497_AddRefreshTokenEntity.Designer.cs">
+      <DependentUpon>202206271753497_AddRefreshTokenEntity.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202206271907593_AddClientEntity.cs" />
+    <Compile Include="Migrations\202206271907593_AddClientEntity.Designer.cs">
+      <DependentUpon>202206271907593_AddClientEntity.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\202206271915356_ChangeRefreshTokenEntity_ChangeClientIdColumnTypeToString_30.cs" />
+    <Compile Include="Migrations\202206271915356_ChangeRefreshTokenEntity_ChangeClientIdColumnTypeToString_30.Designer.cs">
+      <DependentUpon>202206271915356_ChangeRefreshTokenEntity_ChangeClientIdColumnTypeToString_30.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -485,6 +504,15 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\202206241101084_ChangeProductEntity_ExpandDescriptionTo500.resx">
       <DependentUpon>202206241101084_ChangeProductEntity_ExpandDescriptionTo500.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202206271753497_AddRefreshTokenEntity.resx">
+      <DependentUpon>202206271753497_AddRefreshTokenEntity.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202206271907593_AddClientEntity.resx">
+      <DependentUpon>202206271907593_AddClientEntity.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\202206271915356_ChangeRefreshTokenEntity_ChangeClientIdColumnTypeToString_30.resx">
+      <DependentUpon>202206271915356_ChangeRefreshTokenEntity_ChangeClientIdColumnTypeToString_30.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

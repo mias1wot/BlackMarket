@@ -23,6 +23,31 @@ namespace BlackMarket_API.Migrations
 			//  You can use the DbSet<T>.AddOrUpdate() helper extension method 
 			//  to avoid creating duplicate seed data.
 
+			//Add Identity data to DB
+			var clients = new List<Client>
+			{
+				new Client{
+					ClientId = "reactApp",
+					Secret = Helper.GetHash("SecretOfReact"),
+					Name = "React front-end",
+					ApplicationType = ApplicationTypes.React,
+					Active = true,
+					RefreshTokenLifeTimeInMinutes = 10080, //60 * 24 * 7 = 1 week
+					AllowedOrigin = "*",
+				},
+				new Client{
+					ClientId = "flutterApp",
+					Secret = Helper.GetHash("SecretOfFlutter"),
+					Name = "Flutter front-end",
+					ApplicationType = ApplicationTypes.Flutter,
+					Active = true,
+					RefreshTokenLifeTimeInMinutes = 10080, //60 * 24 * 7 = 1 week
+					AllowedOrigin = "*",
+				},
+			};
+			context.Client.AddOrUpdate(client => client.ClientId, clients.ToArray());
+			context.SaveChanges();
+
 
 			//Add admin to DB
 			string adminEmail = "user1@gmail.com";
