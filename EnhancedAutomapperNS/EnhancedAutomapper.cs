@@ -30,11 +30,13 @@ namespace BlackMarket_API.EnhancedAutomapperNS
 			return new EnhancedAutomapperFrom<TSource>(source);
 		}
 
+
+
 		delegate void del();
 
 		//public static TDest Test<TSource, TDest>(this TSource source)
 		//public static IQueryable<TDest> Test<TSource, TDest>(this IQueryable<TSource> source)
-		public static Expression<Func<TSource, TDest>> Test<TSource, TDest>()
+		public static Expression<Func<TSource, TDest>> TypeMap<TSource, TDest>()
 		{
 			var queryExpression = EnhancedAutomapperFrom<TSource>.BuildExpression<TDest>();
 			//return source.Select(queryExpression);
@@ -65,19 +67,19 @@ namespace BlackMarket_API.EnhancedAutomapperNS
 		//TEST AREA
 		public static Expression<Func<TSource, TDest>> TestTo<TDest>(TSource source)
 		{
-			var queryExpression = TestBuildExpression<TDest>(source);
+			var queryExpression = TestBuildExpression<TDest>();
 
 			return queryExpression;
 		}
 		
 		public static TDest TestTo2<TDest>(TSource source)
 		{
-			Expression<Func<TSource, TDest>> queryExpression = TestBuildExpression<TDest>(source);
+			Expression<Func<TSource, TDest>> queryExpression = TestBuildExpression<TDest>();
 
 			return queryExpression.Compile()(source);
 		}
 
-		private static Expression<Func<TSource, TDest>> TestBuildExpression<TDest>(TSource source)
+		private static Expression<Func<TSource, TDest>> TestBuildExpression<TDest>()
 		{
 			var sourceProperties = typeof(TSource).GetProperties();
 			var destinationProperties = typeof(TDest).GetProperties().Where(dest => dest.CanWrite);
@@ -120,9 +122,9 @@ namespace BlackMarket_API.EnhancedAutomapperNS
 
 			var expression = Expression.Lambda<Func<TSource, TDest>>(Expression.MemberInit(Expression.New(typeof(TDest)), bindings), parameterExpression);
 
-			var key = GetCacheKey<TDest>();
+			//var key = GetCacheKey<TDest>();
 
-			ExpressionCache.Add(key, expression);
+			//ExpressionCache.Add(key, expression);
 
 			return expression;
 		}

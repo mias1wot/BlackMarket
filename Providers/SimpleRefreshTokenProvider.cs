@@ -47,8 +47,8 @@ namespace BlackMarket_API.Providers
 
         public async Task ReceiveAsync(AuthenticationTokenReceiveContext context)
         {
-            var allowedOrigin = context.OwinContext.Get<string>("as:clientAllowedOrigin");
-            context.OwinContext.Response.Headers.Add("Access-Control-Allow-Origin", new[] { allowedOrigin });
+            //var allowedOrigin = context.OwinContext.Get<string>("as:clientAllowedOrigin");
+            //context.OwinContext.Response.Headers.Add("Access-Control-Allow-Origin", new[] { allowedOrigin });
 
             string refreshTokenId = context.Token;
 

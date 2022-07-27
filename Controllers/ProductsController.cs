@@ -30,6 +30,7 @@ namespace BlackMarket_API.Controllers
 	{
 		private readonly IProductRepository productRepository;
 		private readonly IMapper mapper;
+		private static readonly NLog.Logger _logger = NLog.LogManager.GetCurrentClassLogger();
 
 		private UserManager _userManager;
 		public UserManager UserManager
@@ -114,10 +115,28 @@ namespace BlackMarket_API.Controllers
 
 
 
+		public int A()
+		{
+			throw new Exception("Mine errorrrrrr");
+		}
 
 		//test area: this is not implemented
 		public void Test()
 		{
+			//try
+			//{
+			//	A();
+			//}
+			//catch (Exception e)
+			//{
+			//	_logger.Error(e, "Nope, this is error");
+			//}
+
+			//string error = "MinE";
+			//char c = 'f';
+			//int val = 34;
+			//_logger.Info("Alarm: an error happened, error = '{error}', val = {val}, obj = {obj}, char = {c}", error, val, mapper, c);
+
 			productRepository.Test(mapper);
 			//var a = new Data.ViewModels.TestProductViewModel();
 

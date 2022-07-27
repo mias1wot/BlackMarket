@@ -30,6 +30,7 @@ namespace BlackMarket_API.Data.Services.Repositories
 	//If product amount exceeds int.MaxValue, you need to implement and use BigSkip (just Skip in cycle).
 	public class ProductRepository : IProductRepository
 	{
+		private static readonly NLog.Logger _logger = NLog.LogManager.GetCurrentClassLogger();
 		private const string _containerName = "products";
 
 
@@ -89,6 +90,7 @@ namespace BlackMarket_API.Data.Services.Repositories
 						//productViewModel = EnhancedAutomapper.Test<Product, ProductViewModel>(),
 						//productViewModel = Enumerable.Select<Product, ProductViewModel>(new List<Product>(), EnhancedAutomapper.Test<Product, ProductViewModel>(() => SoldAmount = cartCollection.Sum(cart => (int?)cart.Amount) ?? 0).Compile()),
 						//productViewModel = Queryable.Select<Product, ProductViewModel>(null, EnhancedAutomapper.Test<Product, ProductViewModel>())),
+						productViewModel = EnhancedAutomapper.TypeMap<Product, HomeProductViewModel>().Compile()(product),
 
 						//Product = product,
 						//ProductViewModel = new List<Product>() { product }.Select(product1 => EnhancedAutomapperFrom<Product>.TestTo<ProductViewModel>(product1)).First(),
@@ -98,9 +100,12 @@ namespace BlackMarket_API.Data.Services.Repositories
 						SoldAmount = cartCollection.Sum(cart => (int?)cart.Amount) ?? 0,
 						InCart = cartCollection.Select(cart => cart.UserId).Contains(0)
 					});
+				//var res = query.ToList();
 
-				var res = query.ToList();
-				//var a = "kfdj";
+
+				var testCall = context.Product.Select(EnhancedAutomapper.TypeMap<Product, HomeProductViewModel>());
+				var res = testCall.ToList();
+				var a = "kfdj";
 			}
 		}
 
@@ -110,35 +115,47 @@ namespace BlackMarket_API.Data.Services.Repositories
 			{
 				IQueryable<Product> products = context.Product;
 
-				if (categoryId != null)
+				//if it's not "All catoregies" category
+				if (categoryId != null && categoryId != context.Category.Where(category => category.Name == "All categories").Select(category => category.CategoryId).SingleOrDefault())
 					products = products.Where(product => product.CategoryId == categoryId);
 
 				if (productName != null)
 					products = products.Where(product => product.Name.Contains(productName));
 
 
-				var res = products
-				.GroupJoin(context.Cart,
-					product => product.ProductId,
-					cart => cart.ProductId,
-					(product, cartCollection) => new
-					{
-						Product = product,
-						SoldAmount = cartCollection.Sum(cart => (int?)cart.Amount) ?? 0,
-						InCart = cartCollection.Select(cart => cart.UserId).Contains(userId)
-					})
-				.OrderBy(productVM => productVM.Product.Name)
-				.Skip((page - 1) * pageSize)
-				.Take(pageSize)
-				.ToList();
+				try
+				{
+					var res = products
+					.GroupJoin(context.Cart,
+						product => product.ProductId,
+						cart => cart.ProductId,
+						(product, cartCollection) => new
+						{
+							Product = product,
+							SoldAmount = cartCollection.Sum(cart => (int?)cart.Amount) ?? 0,
+							InCart = cartCollection.Select(cart => cart.UserId).Contains(userId)
+						})
+					.OrderBy(productVM => productVM.Product.Name)
+					.Skip((page - 1) * pageSize)
+					.Take(pageSize)
+					.ToList();
 
 
-				return res.Select(productAndOther =>
+				
+					return res.Select(productAndOther =>
 					(
 						productAndOther.Product,
 						productAndOther.SoldAmount,
 						productAndOther.InCart
 					)).ToList();
+				}
+				catch(Exception e)
+				{
+					_logger.Error(e, "Failed to get values from DB (Product model): userId={userId}, categoryId={categoryId}, productName={productName}, page={page}, pageSize={pageSize}, mapper={mapper}",
+						userId, categoryId, productName, page, pageSize, mapper);
+				}
+
+				return null;
 			}
 		}
 
@@ -159,6 +176,9 @@ namespace BlackMarket_API.Data.Services.Repositories
 
 			//Gets products photo
 			var photos = AzureStorage.GetPhotosFromAzureStorage(_containerName, products.Select(productAndOther => productAndOther.Product.PhotoPath).ToList());
+			if (photos == null)
+				return null;
+
 			var photoIterator = photos.GetEnumerator();
 
 			productViewModels.ForEach(productVM =>

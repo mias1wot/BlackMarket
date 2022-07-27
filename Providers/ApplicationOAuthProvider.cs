@@ -30,11 +30,11 @@ namespace BlackMarket_API.Providers
 
         public override async Task GrantResourceOwnerCredentials(OAuthGrantResourceOwnerCredentialsContext context)
         {
-            var allowedOrigin = context.OwinContext.Get<string>("as:clientAllowedOrigin");
-            if (allowedOrigin == null)
-                allowedOrigin = "*";
+            //var allowedOrigin = context.OwinContext.Get<string>("as:clientAllowedOrigin");
+            //if (allowedOrigin == null)
+            //    allowedOrigin = "*";
 
-            context.OwinContext.Response.Headers.Add("Access-Control-Allow-Origin", new[] { allowedOrigin });
+            //context.OwinContext.Response.Headers.Add("Access-Control-Allow-Origin", new[] { allowedOrigin });
 
 
             var userManager = context.OwinContext.GetUserManager<UserManager>();
@@ -166,7 +166,7 @@ namespace BlackMarket_API.Providers
                 return Task.FromResult<object>(null);
             }
 
-            context.OwinContext.Set<string>("as:clientAllowedOrigin", client.AllowedOrigin);
+            //context.OwinContext.Set<string>("as:clientAllowedOrigin", client.AllowedOrigin);
             context.OwinContext.Set<string>("as:clientRefreshTokenLifeTimeInMinutes", client.RefreshTokenLifeTimeInMinutes.ToString());
 
             context.Validated();

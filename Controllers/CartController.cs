@@ -53,5 +53,13 @@ namespace BlackMarket_API.Controllers
 		{
             return cartRepository.ChangeProductAmount(User.Identity.GetUserId<long>(), productId, changeAmountOn);
 		}
+
+        public IHttpActionResult Delete(long productId)
+		{
+            string error = cartRepository.DeleteProduct(User.Identity.GetUserId<long>(), productId);
+            if (error != null)
+                return BadRequest(error);
+            return Ok();
+		}
     }
 }
